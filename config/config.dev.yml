@@ -1,0 +1,24 @@
+loggerLevel: Debugger
+mysql:
+  dsn:
+  password:
+  maxConnections:
+  minConnections:
+
+postgres:
+  dsn:
+  password:
+  maxConnections:
+  minConnections:
+
+redis:
+  host:
+  db:
+  password:
+
+kafka:
+  host:
+
+chain:
+  nodes:
+    eth: []
