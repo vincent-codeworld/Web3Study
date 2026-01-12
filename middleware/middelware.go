@@ -9,15 +9,16 @@ import (
 var Hook *Hooker
 
 func init() {
-	Hook.hookerTable = make([]Closer, 0)
+	Hook.hookerFuncTable = make([]HookFunc, 0)
 }
 
+type HookFunc func() error
 type Hooker struct {
-	hookerTable []Closer
+	hookerFuncTable []HookFunc
 }
 
-func (hook *Hooker) Register(c Closer) {
-	hook.hookerTable = append(hook.hookerTable, c)
+func (hook *Hooker) Register(h HookFunc) {
+	hook.hookerFuncTable = append(hook.hookerFuncTable, h)
 }
 
 func (hook *Hooker) Execute(ctx context.Context) error {
@@ -27,11 +28,11 @@ func (hook *Hooker) Execute(ctx context.Context) error {
 	}{
 		ch: make(chan struct{}),
 	}
-	for _, h := range hook.hookerTable {
+	for _, h := range hook.hookerFuncTable {
 		a.wg.Add(1)
 		hooker := h
 		go func() {
-			_ = hooker.close()
+			_ = hooker()
 			a.wg.Done()
 		}()
 	}
@@ -45,8 +46,4 @@ func (hook *Hooker) Execute(ctx context.Context) error {
 	case <-a.ch:
 		return nil
 	}
-}
-
-type Closer interface {
-	close() error
 }
