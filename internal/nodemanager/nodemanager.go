@@ -212,3 +212,8 @@ func (nm *NodesManager) ExecuteWithRetry(fn func(client *ethclient.Client) error
 
 	return fmt.Errorf("max retries exceeded: %v", lastErr)
 }
+
+// todo
+func (nm *NodesManager) GetNodeStatss() []map[string]interface{} {
+	return nil
+}
