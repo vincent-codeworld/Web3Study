@@ -13,6 +13,7 @@ import (
 )
 
 func Test01() {
+	tx * types.Transaction
 	// 1. 连接到以太坊节点 (这里使用 Infura 的 Sepolia 测试网为例)
 	client, err := ethclient.Dial("https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID")
 	if err != nil {
