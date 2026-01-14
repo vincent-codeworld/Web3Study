@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var Db *gorm.DB
+var DB *gorm.DB
 
 func init() {
 	getDsn := func() string {
@@ -34,6 +34,6 @@ func init() {
 	}
 	//todo sqlDB 增加数据库池化配置
 	sqlDB.SetConnMaxLifetime(100 * time.Second)
-	Db = db
+	DB = db
 	middleware.Hook.Register(sqlDB.Close)
 }

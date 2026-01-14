@@ -10,7 +10,6 @@ type PostgRestConfig struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	DbName   string `yaml:"dbname"`
-	DbName   string `yaml:"dbname"`
 	Port     int    `yaml:"port"`
 	SslMode  string `yaml:"sslmode"`
 	TimeZone string `yaml:"TimeZone"`
