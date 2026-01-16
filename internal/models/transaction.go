@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"gorm.io/gorm"
 )
 
@@ -80,4 +81,28 @@ func GetLastestBlockNumer(db *gorm.DB) (uint64, error) {
 		return 0, err
 	}
 	return blockNumber, nil
+}
+
+func GenerateTransactionRecord(block *types.Block, tx *types.Transaction, receipt *types.Receipt) (*TransactionRecord, error) {
+	fromAdress, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
+	if err != nil {
+		return nil, err
+	}
+	toAdress := ""
+	if tx.To() != nil {
+		toAdress = tx.To().Hex()
+	}
+	return &TransactionRecord{
+		BlockNumber: block.NumberU64(),
+		TxHash:      tx.Hash().String(),
+		TxIndex:     receipt.TransactionIndex,
+		FromAddress: fromAdress.String(),
+		ToAddress:   toAdress,
+		Value:       tx.Value().String(),
+		GasUsed:     receipt.GasUsed,
+		GasPrice:    tx.GasPrice().String(),
+		RawStatus:   uint8(receipt.Status),
+		Timestamp:   block.Time(),
+	}, nil
+
 }
