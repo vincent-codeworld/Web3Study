@@ -1,8 +1,8 @@
 package service
 
 import (
-	"Web3Study/internal/models"
-	"Web3Study/internal/node"
+	"Web3Study/scanchains/internal/models"
+	"Web3Study/scanchains/internal/node"
 	"context"
 	"math/big"
 

@@ -1,6 +1,8 @@
 package redis
 
-import "Web3Study/middleware"
+import (
+	"Web3Study/scanchains/middleware"
+)
 
 func init() {
 	middleware.Hook.Register(close)

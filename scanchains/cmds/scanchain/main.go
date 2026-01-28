@@ -1,7 +1,7 @@
 package main
 
 import (
-	mw "Web3Study/middleware"
+	mw "Web3Study/scanchains/middleware"
 	"context"
 	"os"
 	"os/signal"

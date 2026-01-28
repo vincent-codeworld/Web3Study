@@ -1,0 +1,16 @@
+wal:
+  full_logs_prepath:
+  incremental_log_prepath:
+
+coin_pair_groups:
+  - "BTCUSDT": 0
+  - "ETHUSDT": 1
+  - "AVVEUSDT": 2
+  - "SHIBUSDT": 2
+
+
+
+coin_pair_path_mapping:
+  - 0: ""
+  - 1: ""
+  - 2: ""

@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"Web3Study/config"
-	"Web3Study/middleware"
+	"Web3Study/scanchains/config"
+	"Web3Study/scanchains/middleware"
 	"fmt"
 	"log"
 	"time"
