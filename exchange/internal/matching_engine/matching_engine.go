@@ -31,6 +31,7 @@ func (engine *MatchEngine) Stop() {
   4、redis可以记录最大发送的seqId
 */
 // replay wal logs,including incremental log and full log
+// 路径: base_url/{coin_pair_group}/{trade_side}/{sequeue_id}
 func (engine *MatchEngine) replay() {
 	// 获取最新的全量快照，反序列化到orderBook
 	// 获取增量日志，在全量的基础上进行回放
