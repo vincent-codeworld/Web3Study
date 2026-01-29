@@ -9,6 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
+/*
+*
+
+	RingBuffer 是单生产者多消费者无锁模式
+*/
 type RingBuffer struct {
 	data      []any
 	_padding1 [64]byte //解决伪共享带来的cpu cache line xao

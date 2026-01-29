@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/linxGnu/grocksdb"
 )
 
 var RkDb RockDB
+var RockFileNotFound = fmt.Errorf("file not exist")
 
 type RockDB struct {
 	*grocksdb.DB
@@ -59,4 +61,25 @@ func (RkDb *RockDB) FindPathsByPrefix(prefix string) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func (RkDb *RockDB) Read(path string) ([]byte, error) {
+	// 1. 创建读选项
+	ro := grocksdb.NewDefaultReadOptions()
+	defer ro.Destroy()
+
+	// 2. 执行 Get 查询
+	// 注意：RocksDB 返回的 slice 是 C++ 分配的内存，必须手动 Free
+	slice, err := RkDb.Get(ro, []byte(path))
+	if err != nil {
+		return nil, err
+	}
+	// 3. 必须释放 slice 占用的 C++ 内存
+	defer slice.Free()
+
+	// 4. 判断是否查到了数据
+	if slice.Exists() {
+		return slice.Data(), nil
+	}
+	return nil, RockFileNotFound
 }

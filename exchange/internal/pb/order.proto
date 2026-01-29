@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package dto;
+
+// 指定生成的 Go 包路径，建议根据你的项目结构修改
+// 例如: github.com/your_user/your_project/pb
+option go_package = "./exchange/internal/dto";
+
+// ==========================================
+// 枚举定义
+// ==========================================
+
+enum Side {
+  SIDE_UNKNOWN = 0;
+  SIDE_BUY = 1;
+  SIDE_SELL = 2;
+}
+
+enum OrderType {
+  ORDER_TYPE_UNKNOWN = 0;
+  ORDER_TYPE_LIMIT = 1;
+  ORDER_TYPE_MARKET = 2;
+  ORDER_TYPE_POST_ONLY = 3;
+  ORDER_TYPE_FOK = 4;
+  ORDER_TYPE_IOC = 5;
+  ORDER_TYPE_AON = 6;
+  ORDER_TYPE_ICEBERG = 7;
+  ORDER_TYPE_CANCEL = 8;
+  ORDER_TYPE_SYSTEM_CANCEL = 9;
+}
+
+enum SelfTradeWMType {
+  STP_AST = 0;
+  STP_DC = 1;
+  STP_CO = 2;
+  STP_CN = 3;
+  STP_CB = 4;
+}
+
+enum OrderState {
+  ORDER_STATE_UNKNOWN = 0;
+  ORDER_STATE_PENDING = 1;
+  ORDER_STATE_ACCEPTED = 2;
+  ORDER_STATE_FILLED = 3;
+  ORDER_STATE_PARTIAL_FILLED = 4;
+  ORDER_STATE_CANCELED = 5;
+  ORDER_STATE_PARTIAL_CANCELED = 6;
+  ORDER_STATE_FAILED = 7;
+  ORDER_STATE_ERROR = 8;
+}
+
+// ==========================================
+// 消息定义
+// ==========================================
+
+message Order {
+  int64 seq_id = 1;
+  int64 user_id = 2;
+  int64 order_id = 3;
+
+  Side side = 4;
+  OrderType type = 5;
+  OrderState state = 6;
+
+  // Decimal 类型在 Proto 中通常使用 string 传输以保证精度
+  // 接收端使用 decimal.NewFromString(price) 解析
+  string price = 7;
+  string unfilled_amount = 8;
+  string circuit_rate = 9;
+
+  int64 create_at = 10;
+  SelfTradeWMType stp = 11;
+  int64 pull_time = 12;
+
+  // 批量撤单的订单ID集合
+  string extra = 13;
+
+  string taker = 14;
+  string maker = 15;
+}

@@ -1,4 +1,4 @@
-package dto
+package tmp
 
 import "github.com/shopspring/decimal"
 
@@ -51,7 +51,7 @@ const (
 )
 
 type Order struct {
-	Id             int64
+	SeqId          int64
 	UserId         int64
 	OrderId        int64
 	Side           Side
