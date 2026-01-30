@@ -85,3 +85,34 @@ message OrderBookSnapshot {
   repeated Order asks = 3; // 卖单树扁平化
   repeated Order bids = 4; // 买单树扁平化
 }
+
+
+// OrderResult 订单结果消息
+message OrderResult {
+  // 订单ID
+  int64 order_id = 1;
+
+  // 用户ID
+  int64 user_id = 2;
+
+  // 角色 (taker/maker)
+  string role = 3;
+
+  // 价格 (使用 optional 实现 omitempty 效果)
+  optional string price = 4;
+
+  // 未成交数量 (taker 专用)
+  optional string unfilled_amount = 5;
+
+  // 已成交数量 (maker 专用)
+  optional string filled_amount = 6;
+
+  // 订单状态
+  optional string state = 7;
+
+  // Taker 地址
+  string taker = 8;
+
+  // Maker 地址
+  string maker = 9;
+}
