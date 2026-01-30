@@ -1,13 +1,14 @@
 package middleware
 
-import "github.com/IBM/sarama"
+import (
+	"github.com/segmentio/kafka-go"
+)
 
-var consumer sarama.ConsumerGroup
+var Consumer *kafka.Reader
 
 func init() {
-	client, err := sarama.NewConsumerGroup([]string{}, "", nil)
-	if err != nil {
-		panic(err)
-	}
-	consumer = client
+	Consumer = kafka.NewReader(kafka.ReaderConfig{
+		// 手动提交
+		CommitInterval: 0,
+	})
 }

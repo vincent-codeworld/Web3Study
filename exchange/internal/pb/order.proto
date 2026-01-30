@@ -78,3 +78,10 @@ message Order {
   string taker = 14;
   string maker = 15;
 }
+
+message OrderBookSnapshot {
+  uint32 coin_group = 1;       // 交易对，如 BTC-USDT
+  uint64 sequence_id = 2;  // 撮合引擎的定序 ID (非常重要，用于对账)
+  repeated Order asks = 3; // 卖单树扁平化
+  repeated Order bids = 4; // 买单树扁平化
+}

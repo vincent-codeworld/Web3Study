@@ -8,17 +8,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
-	"github.com/emirpasic/gods/trees"
+	"github.com/emirpasic/gods/sets/treeset"
 )
 
 type MatchEngine struct {
 	ctx           context.Context
 	coinPairGroup uint8
-	buyOrderBook  *trees.Tree
-	sellOrderBook *trees.Tree
+	buyOrderBook  *treeset.Set
+	sellOrderBook *treeset.Set
 }
 
 func NewMatchEngine(ctx context.Context) *MatchEngine {
@@ -26,7 +27,37 @@ func NewMatchEngine(ctx context.Context) *MatchEngine {
 }
 
 func (engine *MatchEngine) Start() {
+	//初始化订单簿，replay
 
+	go func() {
+		engine.replay()
+		consumer := middleware.Consumer
+		//todo 需要获取wal最新的offset
+		err := utils.Retry(3, func() error {
+			return consumer.SetOffset(123)
+		})
+
+		if err != nil {
+			return
+		}
+		for {
+			//1.消费数据，反序列化
+			msg, err := consumer.FetchMessage(context.Background())
+			if err != nil {
+				log.Printf("Error reading message: %v", err)
+				continue
+			}
+			newOrder := &dto.Order{}
+			err = newOrder.UnmarshalVT(msg.Value)
+			if err != nil {
+				continue
+			}
+			//2.撮合
+			//3.写入WAL缓存
+			//4.批量写入WAL持久化后，提交offset(将对应的offset写入文件？)
+			//5 将批量撮合结果写入下游kafka，提交offset，下游必须保证幂等性
+		}
+	}()
 }
 
 func (engine *MatchEngine) Stop() {
@@ -66,15 +97,48 @@ func (engine *MatchEngine) replay() {
 		}
 		return fullPath
 	}
-	sellFullLogPath := getFullLogPath(dto.SELL)
+	sellFullLogPath := getFullLogPath(dto.Side_SIDE_SELL)
 	read, err := middleware.RkDb.Read(sellFullLogPath)
 	if !errors.Is(err, middleware.RockFileNotFound) {
 		panic(read)
 	}
-
 }
 func (engine *MatchEngine) getFullLogPath(side dto.Side) string {
 	fileSeparator := utils.GetFileSeparator()
 	findPath := fmt.Sprintf("%s%s%d%s%d", config.GlobalConf.Wal.FullLogsPrePath, fileSeparator, engine.coinPairGroup, fileSeparator, side)
 	return findPath
 }
+
+func (engine *MatchEngine) MarshalSnapShort() []byte {
+	buyBook := make([]*dto.Order, engine.buyOrderBook.Size())
+	sellBook := make([]*dto.Order, engine.sellOrderBook.Size())
+	var sequenceId int64
+	marshalFunc := func(book *treeset.Set, orders []*dto.Order) {
+		iter := book.Iterator()
+		for i := 0; iter.Next(); i++ {
+			o := iter.Value().(*dto.Order)
+			if o.SeqId > sequenceId {
+				sequenceId = o.SeqId
+			}
+			orders[i] = o
+		}
+	}
+
+	marshalFunc(engine.buyOrderBook, buyBook)
+	marshalFunc(engine.sellOrderBook, sellBook)
+
+	snapshot := dto.OrderBookSnapshot{
+		SequenceId: uint64(sequenceId),
+		CoinGroup:  uint32(engine.coinPairGroup),
+		Asks:       sellBook,
+		Bids:       buyBook,
+	}
+	data, err := snapshot.MarshalVT()
+	if err != nil {
+		return nil
+	}
+	return data
+}
+
+// todo
+func (engine *MatchEngine) UnMarshalSnapShort() {}

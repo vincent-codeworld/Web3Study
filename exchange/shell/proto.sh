@@ -1,0 +1,1 @@
+protoc     -I=./internal/pb     --go_out=./internal/dto     --go_opt=paths=source_relative     --go-vtproto_out=./internal/dto     --go-vtproto_opt=paths=source_relative     --go-vtproto_opt=features=marshal+unmarshal+size+pool     ./internal/pb/order.proto

@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 */
 type RingBuffer struct {
 	data      []any
-	_padding1 [64]byte //解决伪共享带来的cpu cache line xao
+	_padding1 [64]byte //解决伪共享带来的cpu cacheline 消耗
 	head      uint64
 	_padding2 [64]byte
 	tail      uint64
