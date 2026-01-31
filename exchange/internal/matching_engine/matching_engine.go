@@ -20,6 +20,7 @@ type MatchEngine struct {
 	coinPairGroup uint8
 	buyOrderBook  *treeset.Set
 	sellOrderBook *treeset.Set
+	orderMap      map[string]*dto.Order
 }
 
 func NewMatchEngine(ctx context.Context) *MatchEngine {
