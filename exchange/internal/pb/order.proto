@@ -77,6 +77,9 @@ message Order {
 
   string taker = 14;
   string maker = 15;
+  Order pre = 16;
+  Order next = 17;
+  PriceLevel  Parent =18;// 反向指针：指向它所属的“价格层级”对象
 }
 
 message OrderBookSnapshot {
@@ -87,7 +90,7 @@ message OrderBookSnapshot {
 }
 
 
-// OrderResult 订单结果消息
+// c
 message OrderResult {
   // 订单ID
   int64 order_id = 1;
@@ -115,4 +118,16 @@ message OrderResult {
 
   // Maker 地址
   string maker = 9;
+}
+
+message PriceLevel {
+  // 价格
+  double price = 1;
+
+  // 该价格档总挂单量
+  double total_volume = 2;
+
+  // 该价格档下的订单列表
+   Order head = 3;
+   Order tail = 4;
 }
