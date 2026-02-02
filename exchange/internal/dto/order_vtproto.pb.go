@@ -306,31 +306,31 @@ func (m *OrderResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x42
 	}
-	if m.State != nil {
-		i -= len(*m.State)
-		copy(dAtA[i:], *m.State)
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.State)))
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.State)))
 		i--
 		dAtA[i] = 0x3a
 	}
-	if m.FilledAmount != nil {
-		i -= len(*m.FilledAmount)
-		copy(dAtA[i:], *m.FilledAmount)
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.FilledAmount)))
+	if len(m.FilledAmount) > 0 {
+		i -= len(m.FilledAmount)
+		copy(dAtA[i:], m.FilledAmount)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.FilledAmount)))
 		i--
 		dAtA[i] = 0x32
 	}
-	if m.UnfilledAmount != nil {
-		i -= len(*m.UnfilledAmount)
-		copy(dAtA[i:], *m.UnfilledAmount)
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.UnfilledAmount)))
+	if len(m.UnfilledAmount) > 0 {
+		i -= len(m.UnfilledAmount)
+		copy(dAtA[i:], m.UnfilledAmount)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.UnfilledAmount)))
 		i--
 		dAtA[i] = 0x2a
 	}
-	if m.Price != nil {
-		i -= len(*m.Price)
-		copy(dAtA[i:], *m.Price)
-		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(*m.Price)))
+	if len(m.Price) > 0 {
+		i -= len(m.Price)
+		copy(dAtA[i:], m.Price)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.Price)))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -536,20 +536,20 @@ func (m *OrderResult) SizeVT() (n int) {
 	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
-	if m.Price != nil {
-		l = len(*m.Price)
+	l = len(m.Price)
+	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
-	if m.UnfilledAmount != nil {
-		l = len(*m.UnfilledAmount)
+	l = len(m.UnfilledAmount)
+	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
-	if m.FilledAmount != nil {
-		l = len(*m.FilledAmount)
+	l = len(m.FilledAmount)
+	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
-	if m.State != nil {
-		l = len(*m.State)
+	l = len(m.State)
+	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	l = len(m.Taker)
@@ -1407,8 +1407,7 @@ func (m *OrderResult) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			s := string(dAtA[iNdEx:postIndex])
-			m.Price = &s
+			m.Price = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
@@ -1440,8 +1439,7 @@ func (m *OrderResult) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			s := string(dAtA[iNdEx:postIndex])
-			m.UnfilledAmount = &s
+			m.UnfilledAmount = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
@@ -1473,8 +1471,7 @@ func (m *OrderResult) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			s := string(dAtA[iNdEx:postIndex])
-			m.FilledAmount = &s
+			m.FilledAmount = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
@@ -1506,8 +1503,7 @@ func (m *OrderResult) UnmarshalVT(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			s := string(dAtA[iNdEx:postIndex])
-			m.State = &s
+			m.State = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {

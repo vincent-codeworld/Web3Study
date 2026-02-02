@@ -101,17 +101,17 @@ message OrderResult {
   // 角色 (taker/maker)
   string role = 3;
 
-  // 价格 (使用 optional 实现 omitempty 效果)
-  optional string price = 4;
+  // 价格
+   string price = 4;
 
   // 未成交数量 (taker 专用)
-  optional string unfilled_amount = 5;
+   string unfilled_amount = 5;
 
   // 已成交数量 (maker 专用)
-  optional string filled_amount = 6;
+   string filled_amount = 6;
 
   // 订单状态
-  optional string state = 7;
+   string state = 7;
 
   // Taker 地址
   string taker = 8;

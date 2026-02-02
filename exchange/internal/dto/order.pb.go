@@ -522,14 +522,14 @@ type OrderResult struct {
 	UserId int64 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// 角色 (taker/maker)
 	Role string `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
-	// 价格 (使用 optional 实现 omitempty 效果)
-	Price *string `protobuf:"bytes,4,opt,name=price,proto3,oneof" json:"price,omitempty"`
+	// 价格
+	Price string `protobuf:"bytes,4,opt,name=price,proto3" json:"price,omitempty"`
 	// 未成交数量 (taker 专用)
-	UnfilledAmount *string `protobuf:"bytes,5,opt,name=unfilled_amount,json=unfilledAmount,proto3,oneof" json:"unfilled_amount,omitempty"`
+	UnfilledAmount string `protobuf:"bytes,5,opt,name=unfilled_amount,json=unfilledAmount,proto3" json:"unfilled_amount,omitempty"`
 	// 已成交数量 (maker 专用)
-	FilledAmount *string `protobuf:"bytes,6,opt,name=filled_amount,json=filledAmount,proto3,oneof" json:"filled_amount,omitempty"`
+	FilledAmount string `protobuf:"bytes,6,opt,name=filled_amount,json=filledAmount,proto3" json:"filled_amount,omitempty"`
 	// 订单状态
-	State *string `protobuf:"bytes,7,opt,name=state,proto3,oneof" json:"state,omitempty"`
+	State string `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
 	// Taker 地址
 	Taker string `protobuf:"bytes,8,opt,name=taker,proto3" json:"taker,omitempty"`
 	// Maker 地址
@@ -593,29 +593,29 @@ func (x *OrderResult) GetRole() string {
 }
 
 func (x *OrderResult) GetPrice() string {
-	if x != nil && x.Price != nil {
-		return *x.Price
+	if x != nil {
+		return x.Price
 	}
 	return ""
 }
 
 func (x *OrderResult) GetUnfilledAmount() string {
-	if x != nil && x.UnfilledAmount != nil {
-		return *x.UnfilledAmount
+	if x != nil {
+		return x.UnfilledAmount
 	}
 	return ""
 }
 
 func (x *OrderResult) GetFilledAmount() string {
-	if x != nil && x.FilledAmount != nil {
-		return *x.FilledAmount
+	if x != nil {
+		return x.FilledAmount
 	}
 	return ""
 }
 
 func (x *OrderResult) GetState() string {
-	if x != nil && x.State != nil {
-		return *x.State
+	if x != nil {
+		return x.State
 	}
 	return ""
 }
@@ -761,25 +761,21 @@ const file_order_proto_rawDesc = "" +
 	"\x04asks\x18\x03 \x03(\v2\n" +
 	".dto.OrderR\x04asks\x12\x1e\n" +
 	"\x04bids\x18\x04 \x03(\v2\n" +
-	".dto.OrderR\x04bids\"\xca\x03\n" +
+	".dto.OrderR\x04bids\"\xfc\x02\n" +
 	"\vOrderResult\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\x03R\aorderId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x12\n" +
-	"\x04role\x18\x03 \x01(\tR\x04role\x12\x19\n" +
-	"\x05price\x18\x04 \x01(\tH\x00R\x05price\x88\x01\x01\x12,\n" +
-	"\x0funfilled_amount\x18\x05 \x01(\tH\x01R\x0eunfilledAmount\x88\x01\x01\x12(\n" +
-	"\rfilled_amount\x18\x06 \x01(\tH\x02R\ffilledAmount\x88\x01\x01\x12\x19\n" +
-	"\x05state\x18\a \x01(\tH\x03R\x05state\x88\x01\x01\x12\x14\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x14\n" +
+	"\x05price\x18\x04 \x01(\tR\x05price\x12'\n" +
+	"\x0funfilled_amount\x18\x05 \x01(\tR\x0eunfilledAmount\x12#\n" +
+	"\rfilled_amount\x18\x06 \x01(\tR\ffilledAmount\x12\x14\n" +
+	"\x05state\x18\a \x01(\tR\x05state\x12\x14\n" +
 	"\x05taker\x18\b \x01(\tR\x05taker\x12\x14\n" +
 	"\x05maker\x18\t \x01(\tR\x05maker\x12&\n" +
 	"\x03stp\x18\n" +
 	" \x01(\x0e2\x14.dto.SelfTradeWMTypeR\x03stp\x122\n" +
 	"\x15stp_deducted_quantity\x18\v \x01(\tR\x13stpDeductedQuantity\x12#\n" +
-	"\rcancel_reason\x18\f \x01(\tR\fcancelReasonB\b\n" +
-	"\x06_priceB\x12\n" +
-	"\x10_unfilled_amountB\x10\n" +
-	"\x0e_filled_amountB\b\n" +
-	"\x06_state\"\x85\x01\n" +
+	"\rcancel_reason\x18\f \x01(\tR\fcancelReason\"\x85\x01\n" +
 	"\n" +
 	"PriceLevel\x12\x14\n" +
 	"\x05price\x18\x01 \x01(\x01R\x05price\x12!\n" +
@@ -874,7 +870,6 @@ func file_order_proto_init() {
 	if File_order_proto != nil {
 		return
 	}
-	file_order_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

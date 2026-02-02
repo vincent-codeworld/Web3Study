@@ -3,6 +3,7 @@ package matching_engine
 import (
 	"Web3Study/exchange/config"
 	"Web3Study/exchange/internal/dto"
+	"Web3Study/exchange/internal/matching_engine/orderbook"
 	"Web3Study/exchange/middleware"
 	"Web3Study/exchange/utils"
 	"context"
@@ -71,8 +72,8 @@ Rejected 订单未能进入订单簿，在校验阶段就被拒绝。
 type MatchEngine struct {
 	ctx           context.Context
 	coinPairGroup uint8
-	buyOrderBook  *treemap.Map
-	sellOrderBook *treemap.Map
+	buyOrderBook  *orderbook.OrderBook
+	sellOrderBook *orderbook.OrderBook
 	orderMap      map[string]*dto.Order
 }
 
@@ -107,6 +108,7 @@ func (engine *MatchEngine) Start() {
 				continue
 			}
 			//2.撮合
+			engine.match(newOrder)
 			//3.写入WAL缓存
 			//4.批量写入WAL持久化后，提交offset(将对应的offset写入文件？)
 			//5 将批量撮合结果写入下游kafka，提交offset，下游必须保证幂等性
@@ -114,8 +116,32 @@ func (engine *MatchEngine) Start() {
 	}()
 }
 
+func (engine *MatchEngine) match(order *dto.Order) (result []*dto.OrderResult, err error) {
+	ob := engine.getOrderBook(order)
+	orderPrice, _ := strconv.ParseFloat(order.Price, 64)
+	for {
+		tmpPrice, tempPl := ob.Min()
+		if tempPl == nil {
+			return nil, nil
+		}
+		price, _ := strconv.ParseFloat(tmpPrice.(string), 64)
+
+		// todo riskcontrolhandler
+
+		pl := tempPl.(*dto.PriceLevel)
+
+	}
+}
+
 func (engine *MatchEngine) Stop() {
 
+}
+
+func (engine *MatchEngine) getOrderBook(order *dto.Order) *orderbook.OrderBook {
+	if order.Side == dto.Side_SIDE_BUY {
+		return engine.sellOrderBook
+	}
+	return engine.buyOrderBook
 }
 
 /**
