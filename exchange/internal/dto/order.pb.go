@@ -533,9 +533,12 @@ type OrderResult struct {
 	// Taker 地址
 	Taker string `protobuf:"bytes,8,opt,name=taker,proto3" json:"taker,omitempty"`
 	// Maker 地址
-	Maker         string `protobuf:"bytes,9,opt,name=maker,proto3" json:"maker,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Maker               string          `protobuf:"bytes,9,opt,name=maker,proto3" json:"maker,omitempty"`
+	Stp                 SelfTradeWMType `protobuf:"varint,10,opt,name=stp,proto3,enum=dto.SelfTradeWMType" json:"stp,omitempty"`
+	StpDeductedQuantity string          `protobuf:"bytes,11,opt,name=stp_deducted_quantity,json=stpDeductedQuantity,proto3" json:"stp_deducted_quantity,omitempty"` //自成交减量抵消掉的数量
+	CancelReason        string          `protobuf:"bytes,12,opt,name=cancel_reason,json=cancelReason,proto3" json:"cancel_reason,omitempty"`                        //订单取消原因
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *OrderResult) Reset() {
@@ -627,6 +630,27 @@ func (x *OrderResult) GetTaker() string {
 func (x *OrderResult) GetMaker() string {
 	if x != nil {
 		return x.Maker
+	}
+	return ""
+}
+
+func (x *OrderResult) GetStp() SelfTradeWMType {
+	if x != nil {
+		return x.Stp
+	}
+	return SelfTradeWMType_STP_AST
+}
+
+func (x *OrderResult) GetStpDeductedQuantity() string {
+	if x != nil {
+		return x.StpDeductedQuantity
+	}
+	return ""
+}
+
+func (x *OrderResult) GetCancelReason() string {
+	if x != nil {
+		return x.CancelReason
 	}
 	return ""
 }
@@ -737,7 +761,7 @@ const file_order_proto_rawDesc = "" +
 	"\x04asks\x18\x03 \x03(\v2\n" +
 	".dto.OrderR\x04asks\x12\x1e\n" +
 	"\x04bids\x18\x04 \x03(\v2\n" +
-	".dto.OrderR\x04bids\"\xc9\x02\n" +
+	".dto.OrderR\x04bids\"\xca\x03\n" +
 	"\vOrderResult\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\x03R\aorderId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x12\n" +
@@ -747,7 +771,11 @@ const file_order_proto_rawDesc = "" +
 	"\rfilled_amount\x18\x06 \x01(\tH\x02R\ffilledAmount\x88\x01\x01\x12\x19\n" +
 	"\x05state\x18\a \x01(\tH\x03R\x05state\x88\x01\x01\x12\x14\n" +
 	"\x05taker\x18\b \x01(\tR\x05taker\x12\x14\n" +
-	"\x05maker\x18\t \x01(\tR\x05makerB\b\n" +
+	"\x05maker\x18\t \x01(\tR\x05maker\x12&\n" +
+	"\x03stp\x18\n" +
+	" \x01(\x0e2\x14.dto.SelfTradeWMTypeR\x03stp\x122\n" +
+	"\x15stp_deducted_quantity\x18\v \x01(\tR\x13stpDeductedQuantity\x12#\n" +
+	"\rcancel_reason\x18\f \x01(\tR\fcancelReasonB\b\n" +
 	"\x06_priceB\x12\n" +
 	"\x10_unfilled_amountB\x10\n" +
 	"\x0e_filled_amountB\b\n" +
@@ -831,13 +859,14 @@ var file_order_proto_depIdxs = []int32{
 	7,  // 6: dto.Order.Parent:type_name -> dto.PriceLevel
 	4,  // 7: dto.OrderBookSnapshot.asks:type_name -> dto.Order
 	4,  // 8: dto.OrderBookSnapshot.bids:type_name -> dto.Order
-	4,  // 9: dto.PriceLevel.head:type_name -> dto.Order
-	4,  // 10: dto.PriceLevel.tail:type_name -> dto.Order
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	2,  // 9: dto.OrderResult.stp:type_name -> dto.SelfTradeWMType
+	4,  // 10: dto.PriceLevel.head:type_name -> dto.Order
+	4,  // 11: dto.PriceLevel.tail:type_name -> dto.Order
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_order_proto_init() }

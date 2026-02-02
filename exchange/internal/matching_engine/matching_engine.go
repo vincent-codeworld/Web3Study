@@ -12,14 +12,67 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/emirpasic/gods/sets/treeset"
+	"github.com/emirpasic/gods/maps/treemap"
 )
 
+/**
+撮合流程：
+1、判断订单一些信息，是否不符合风控要求，例如价格短时间波动，如果是需要取消订单
+2、判断是否跟Taker是同个user，即self trade类型，是的话需要根据用户对应的配置进行处理
+
+3、判断订单类型，market、limit、fok、ioc、iceberg.....
+*/
+
+/*
+*
+
+	                    ┌─────────────┐
+
+		                │   New/Open  │
+		                └──────┬──────┘
+		                       │
+		       ┌───────────────┼───────────────┐
+		       │               │               │
+		       ▼               ▼               ▼
+		┌──────────┐   ┌───────────────┐   ┌──────────┐
+		│ Cancelled│   │Partially Filled│   │  Filled  │
+		└──────────┘   └───────┬───────┘   └──────────┘
+		  (终结态)             │              (终结态)
+		                       │
+		           ┌───────────┴───────────┐
+		           │                       │
+		           ▼                       ▼
+		┌────────────────────┐      ┌──────────┐
+		│ Partially Cancelled │      │  Filled  │
+		└────────────────────┘      └──────────┘
+		      (终结态)                 (终结态)
+
+状态分类
+订单状态可以分为两类：中间态和终结态。
+
+中间态
+中间态表示订单生命周期尚未结束，后续还可能发生变化。
+
+New/Open 订单已创建，尚未成交，挂在订单簿中等待撮合。
+
+Partially Filled 订单部分成交，仍有剩余数量挂在订单簿中，等待后续撮合或用户操作。
+
+终结态
+终结态表示订单生命周期已结束，不会再发生任何变化。
+
+Filled 订单完全成交，没有剩余数量。
+
+Cancelled 订单未成交就被取消，可能是用户主动取消，也可能是系统取消如IOC未成交部分。
+
+Partially Cancelled 订单部分成交后被取消了剩余部分。
+
+Rejected 订单未能进入订单簿，在校验阶段就被拒绝。
+*/
 type MatchEngine struct {
 	ctx           context.Context
 	coinPairGroup uint8
-	buyOrderBook  *treeset.Set
-	sellOrderBook *treeset.Set
+	buyOrderBook  *treemap.Map
+	sellOrderBook *treemap.Map
 	orderMap      map[string]*dto.Order
 }
 
@@ -114,7 +167,7 @@ func (engine *MatchEngine) MarshalSnapShort() []byte {
 	buyBook := make([]*dto.Order, engine.buyOrderBook.Size())
 	sellBook := make([]*dto.Order, engine.sellOrderBook.Size())
 	var sequenceId int64
-	marshalFunc := func(book *treeset.Set, orders []*dto.Order) {
+	marshalFunc := func(book *treemap.Map, orders []*dto.Order) {
 		iter := book.Iterator()
 		for i := 0; iter.Next(); i++ {
 			o := iter.Value().(*dto.Order)

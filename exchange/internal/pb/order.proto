@@ -79,7 +79,7 @@ message Order {
   string maker = 15;
   Order pre = 16;
   Order next = 17;
-  PriceLevel  Parent =18;// 反向指针：指向它所属的“价格层级”对象
+  PriceLevel  Parent = 18;// 反向指针：指向它所属的“价格层级”对象
 }
 
 message OrderBookSnapshot {
@@ -118,6 +118,9 @@ message OrderResult {
 
   // Maker 地址
   string maker = 9;
+  SelfTradeWMType stp = 10;
+  string  stp_deducted_quantity = 11; //自成交减量抵消掉的数量
+  string cancel_reason = 12;//订单取消原因
 }
 
 message PriceLevel {
@@ -128,6 +131,6 @@ message PriceLevel {
   double total_volume = 2;
 
   // 该价格档下的订单列表
-   Order head = 3;
-   Order tail = 4;
+  Order head = 3;
+  Order tail = 4;
 }
