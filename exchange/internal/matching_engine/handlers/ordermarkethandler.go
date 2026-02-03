@@ -20,31 +20,18 @@ func MarketHandler(taker *dto.Order, ob *orderbook.OrderBook) ([]*dto.OrderResul
 				break
 			}
 			if taker.UserId == maker.UserId {
-				selfTrade, err := SelfTradeHandler(taker, maker)
+				selfTrade, err := selfTradeHandler(taker, maker)
 				if err != nil {
 					return nil, err
 				}
 				result = append(result, selfTrade...)
 				if taker.Stp == dto.SelfTradeWMType_STP_CO {
-					nt := maker.Next
-					if nt == nil {
-						ob.Remove(priceLevel.Price)
-						break
-					}
-					nt.Pre = nil
-					priceLevel.Head = nt
-					maker = priceLevel.Head
+					ob.Del(maker.Price)
 					continue
 				} else if taker.Stp == dto.SelfTradeWMType_STP_CN {
 					return result, nil
 				} else if taker.Stp == dto.SelfTradeWMType_STP_CB {
-					nt := maker.Next
-					if nt == nil {
-						ob.Remove(priceLevel.Price)
-					} else {
-						nt.Pre = nil
-						priceLevel.Head = nt
-					}
+					ob.Del(maker.Price)
 					return result, nil
 				} else if taker.Stp == dto.SelfTradeWMType_STP_DC {
 					isRemove := false
@@ -63,9 +50,11 @@ func MarketHandler(taker *dto.Order, ob *orderbook.OrderBook) ([]*dto.OrderResul
 					if taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || taker.State == dto.OrderState_ORDER_STATE_CANCELED {
 						return result, nil
 					}
+
 					if isRemove {
 						break
 					}
+
 					continue
 				}
 
