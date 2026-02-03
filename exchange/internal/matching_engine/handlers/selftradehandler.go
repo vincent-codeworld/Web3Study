@@ -3,6 +3,7 @@ package handlers
 import (
 	"Web3Study/exchange/internal/constant"
 	"Web3Study/exchange/internal/dto"
+	"Web3Study/exchange/internal/matching_engine/orderbook"
 	"fmt"
 
 	"github.com/shopspring/decimal"
@@ -17,7 +18,7 @@ import (
 			CN:cancel new，取消新订单
 			CB:cancel both，maker跟taker都取消
 */
-func SelfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, error) {
+func selfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, error) {
 	cancelOrder := func(o *dto.Order) {
 		if o.State == dto.OrderState_ORDER_STATE_PARTIAL_FILLED {
 			o.State = dto.OrderState_ORDER_STATE_PARTIAL_CANCELED
@@ -30,7 +31,7 @@ func SelfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 	// 正常的撮合逻辑
 	case dto.SelfTradeWMType_STP_AST:
 		return nil, nil
-		//DC类型是不产生标准成交记录
+	//DC类型是不产生标准成交记录
 	case dto.SelfTradeWMType_STP_DC:
 		takerAmt, _ := decimal.NewFromString(taker.GetUnfilledAmount())
 		makerAmt, _ := decimal.NewFromString(maker.GetUnfilledAmount())
@@ -145,6 +146,49 @@ func SelfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported Trade Type %d", taker.Stp)
+	}
+
+}
+
+func SelfMatch(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, bool, error) {
+	var result []*dto.OrderResult
+	if taker.UserId == maker.UserId {
+		selfTrade, err := selfTradeHandler(taker, maker)
+		if err != nil {
+			return nil, false, err
+		}
+		result = append(result, selfTrade...)
+		if taker.Stp == dto.SelfTradeWMType_STP_CO {
+			ob.Del(maker.Price)
+			return result, true, nil
+		} else if taker.Stp == dto.SelfTradeWMType_STP_CN {
+			return result, false, nil
+		} else if taker.Stp == dto.SelfTradeWMType_STP_CB {
+			ob.Del(maker.Price)
+			return result, false, nil
+		} else if taker.Stp == dto.SelfTradeWMType_STP_DC {
+			isRemove := false
+			if maker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || maker.State == dto.OrderState_ORDER_STATE_CANCELED {
+				nt := maker.Next
+				if nt == nil {
+					ob.Remove(priceLevel.Price)
+					isRemove = true
+				} else {
+					nt.Pre = nil
+					priceLevel.Head = nt
+					maker = priceLevel.Head
+				}
+			}
+
+			if taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || taker.State == dto.OrderState_ORDER_STATE_CANCELED {
+				return result, nil
+			}
+			if isRemove {
+				break
+			}
+			continue
+		}
+
 	}
 
 }

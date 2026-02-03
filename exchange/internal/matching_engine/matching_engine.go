@@ -3,6 +3,7 @@ package matching_engine
 import (
 	"Web3Study/exchange/config"
 	"Web3Study/exchange/internal/dto"
+	"Web3Study/exchange/internal/matching_engine/handlers"
 	"Web3Study/exchange/internal/matching_engine/orderbook"
 	"Web3Study/exchange/middleware"
 	"Web3Study/exchange/utils"
@@ -14,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/maps/treemap"
+	"github.com/shopspring/decimal"
 )
 
 /**
@@ -116,32 +118,49 @@ func (engine *MatchEngine) Start() {
 	}()
 }
 
-func (engine *MatchEngine) match(order *dto.Order) (result []*dto.OrderResult, err error) {
-	ob := engine.getOrderBook(order)
-	orderPrice, _ := strconv.ParseFloat(order.Price, 64)
-	for {
-		tmpPrice, tempPl := ob.Min()
-		if tempPl == nil {
+func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
+	side := dto.Side_SIDE_BUY
+	if order.Side == dto.Side_SIDE_BUY {
+		side = dto.Side_SIDE_SELL
+	}
+	var result []*dto.OrderResult
+	ob := engine.getOrderBook(side)
+	switch order.Type {
+	case dto.OrderType_ORDER_TYPE_MARKET:
+		{
+			r, err := handlers.MarketHandler(order, ob)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+			unfillAmt, _ := decimal.NewFromString(order.UnfilledAmount)
+			//taker撮合后还有余额，放到order book 成为maker
+			if unfillAmt.GreaterThan(decimal.Zero) {
+				tempOb := engine.getOrderBook(order.Side)
+				tempOb.Add(order)
+			}
+			return result, nil
+		}
+	case dto.OrderType_ORDER_TYPE_LIMIT:
+		{
+
 			return nil, nil
 		}
-		price, _ := strconv.ParseFloat(tmpPrice.(string), 64)
-
-		// todo riskcontrolhandler
-
-		pl := tempPl.(*dto.PriceLevel)
-
+	default:
+		return nil, fmt.Errorf("invalid order type: %s", order.Type)
 	}
+
 }
 
 func (engine *MatchEngine) Stop() {
 
 }
 
-func (engine *MatchEngine) getOrderBook(order *dto.Order) *orderbook.OrderBook {
-	if order.Side == dto.Side_SIDE_BUY {
-		return engine.sellOrderBook
+func (engine *MatchEngine) getOrderBook(side dto.Side) *orderbook.OrderBook {
+	if side == dto.Side_SIDE_BUY {
+		return engine.buyOrderBook
 	}
-	return engine.buyOrderBook
+	return engine.sellOrderBook
 }
 
 /**
