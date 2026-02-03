@@ -5,12 +5,10 @@
 package dto
 
 import (
-	binary "encoding/binary"
 	fmt "fmt"
 	protohelpers "github.com/planetscale/vtprotobuf/protohelpers"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	io "io"
-	math "math"
 )
 
 const (
@@ -404,17 +402,19 @@ func (m *PriceLevel) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.TotalVolume != 0 {
-		i -= 8
-		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.TotalVolume))))
+	if len(m.TotalVolume) > 0 {
+		i -= len(m.TotalVolume)
+		copy(dAtA[i:], m.TotalVolume)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.TotalVolume)))
 		i--
-		dAtA[i] = 0x11
+		dAtA[i] = 0x12
 	}
-	if m.Price != 0 {
-		i -= 8
-		binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.Price))))
+	if len(m.Price) > 0 {
+		i -= len(m.Price)
+		copy(dAtA[i:], m.Price)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.Price)))
 		i--
-		dAtA[i] = 0x9
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -581,11 +581,13 @@ func (m *PriceLevel) SizeVT() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Price != 0 {
-		n += 9
+	l = len(m.Price)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
-	if m.TotalVolume != 0 {
-		n += 9
+	l = len(m.TotalVolume)
+	if l > 0 {
+		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
 	if m.Head != nil {
 		l = m.Head.SizeVT()
@@ -1704,27 +1706,69 @@ func (m *PriceLevel) UnmarshalVT(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 1 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
 			}
-			var v uint64
-			if (iNdEx + 8) > l {
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
-			iNdEx += 8
-			m.Price = float64(math.Float64frombits(v))
+			m.Price = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 2:
-			if wireType != 1 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalVolume", wireType)
 			}
-			var v uint64
-			if (iNdEx + 8) > l {
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v = uint64(binary.LittleEndian.Uint64(dAtA[iNdEx:]))
-			iNdEx += 8
-			m.TotalVolume = float64(math.Float64frombits(v))
+			m.TotalVolume = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Head", wireType)

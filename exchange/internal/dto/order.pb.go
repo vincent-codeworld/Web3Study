@@ -658,9 +658,9 @@ func (x *OrderResult) GetCancelReason() string {
 type PriceLevel struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 价格
-	Price float64 `protobuf:"fixed64,1,opt,name=price,proto3" json:"price,omitempty"`
+	Price string `protobuf:"bytes,1,opt,name=price,proto3" json:"price,omitempty"`
 	// 该价格档总挂单量
-	TotalVolume float64 `protobuf:"fixed64,2,opt,name=total_volume,json=totalVolume,proto3" json:"total_volume,omitempty"`
+	TotalVolume string `protobuf:"bytes,2,opt,name=total_volume,json=totalVolume,proto3" json:"total_volume,omitempty"`
 	// 该价格档下的订单列表
 	Head          *Order `protobuf:"bytes,3,opt,name=head,proto3" json:"head,omitempty"`
 	Tail          *Order `protobuf:"bytes,4,opt,name=tail,proto3" json:"tail,omitempty"`
@@ -698,18 +698,18 @@ func (*PriceLevel) Descriptor() ([]byte, []int) {
 	return file_order_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *PriceLevel) GetPrice() float64 {
+func (x *PriceLevel) GetPrice() string {
 	if x != nil {
 		return x.Price
 	}
-	return 0
+	return ""
 }
 
-func (x *PriceLevel) GetTotalVolume() float64 {
+func (x *PriceLevel) GetTotalVolume() string {
 	if x != nil {
 		return x.TotalVolume
 	}
-	return 0
+	return ""
 }
 
 func (x *PriceLevel) GetHead() *Order {
@@ -778,8 +778,8 @@ const file_order_proto_rawDesc = "" +
 	"\rcancel_reason\x18\f \x01(\tR\fcancelReason\"\x85\x01\n" +
 	"\n" +
 	"PriceLevel\x12\x14\n" +
-	"\x05price\x18\x01 \x01(\x01R\x05price\x12!\n" +
-	"\ftotal_volume\x18\x02 \x01(\x01R\vtotalVolume\x12\x1e\n" +
+	"\x05price\x18\x01 \x01(\tR\x05price\x12!\n" +
+	"\ftotal_volume\x18\x02 \x01(\tR\vtotalVolume\x12\x1e\n" +
 	"\x04head\x18\x03 \x01(\v2\n" +
 	".dto.OrderR\x04head\x12\x1e\n" +
 	"\x04tail\x18\x04 \x01(\v2\n" +
