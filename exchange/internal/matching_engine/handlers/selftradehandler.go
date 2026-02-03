@@ -30,7 +30,7 @@ func SelfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 	// 正常的撮合逻辑
 	case dto.SelfTradeWMType_STP_AST:
 		return nil, nil
-		//DC类型是不产生标准成交记录
+	//DC类型是不产生标准成交记录
 	case dto.SelfTradeWMType_STP_DC:
 		takerAmt, _ := decimal.NewFromString(taker.GetUnfilledAmount())
 		makerAmt, _ := decimal.NewFromString(maker.GetUnfilledAmount())

@@ -42,3 +42,20 @@ func (ob *OrderBook) Add(order *dto.Order) {
 		pl.TotalVolume = pl.TotalVolume + orderVol
 	}
 }
+
+func (ob *OrderBook) Del(price string) {
+	value, found := ob.Get(price)
+	if !found {
+		return
+	}
+	pl := value.(*dto.PriceLevel)
+	o := pl.Head
+
+	next := o.Next
+	if next == nil {
+		ob.Remove(price)
+		return
+	}
+	pl.Head = next
+	next.Pre = nil
+}
