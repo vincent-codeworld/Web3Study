@@ -130,17 +130,20 @@ func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
 				return nil, err
 			}
 			result = append(result, r...)
-			return result, nil
 		}
 	case dto.OrderType_ORDER_TYPE_LIMIT:
 		{
-
-			return nil, nil
+			r, err := handlers.LimitHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
 		}
 	default:
 		return nil, fmt.Errorf("invalid order type: %s", order.Type)
 	}
 
+	return result, nil
 }
 
 func (engine *MatchEngine) Stop() {
