@@ -3,17 +3,39 @@ package handlers
 import (
 	"Web3Study/exchange/internal/dto"
 	"Web3Study/exchange/internal/matching_engine/orderbook"
+
+	"github.com/shopspring/decimal"
 )
 
-func LimitHandler(taker *dto.Order, ob *orderbook.OrderBook) ([]*dto.OrderResult, error) {
-	iterator := ob.Iterator()
+/*
+*
 
+	limit限价单是需要判断是否存在对手订单，如果存在在判断selftrade策略
+*/
+func LimitHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.OrderBook) ([]*dto.OrderResult, error) {
+	makerSide := dto.Side_SIDE_BUY
+	if taker.Side == dto.Side_SIDE_BUY {
+		makerSide = dto.Side_SIDE_SELL
+	}
+	ob := obFunc(makerSide)
+	takerPrice, _ := decimal.NewFromString(taker.Price)
+	iterator := ob.Iterator()
 	for iterator.Next() {
 		pl := iterator.Value()
 		priceLevel := pl.(*dto.PriceLevel)
-		for {
 
+		makerPrice := decimal.NewFromFloat(priceLevel.Price)
+		subPrice := makerPrice.Sub(takerPrice)
+		if (taker.Side == dto.Side_SIDE_SELL && subPrice.IsNegative()) ||
+			(taker.Side == dto.Side_SIDE_BUY && subPrice.IsPositive()) {
 			break
+		}
+
+		for {
+			maker := priceLevel.Head
+			if maker == nil {
+				break
+			}
 		}
 	}
 }

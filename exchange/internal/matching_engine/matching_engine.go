@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/maps/treemap"
-	"github.com/shopspring/decimal"
 )
 
 /**
@@ -119,10 +118,6 @@ func (engine *MatchEngine) Start() {
 }
 
 func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
-	side := dto.Side_SIDE_BUY
-	if order.Side == dto.Side_SIDE_BUY {
-		side = dto.Side_SIDE_SELL
-	}
 	var result []*dto.OrderResult
 	obFunc := func(side dto.Side) *orderbook.OrderBook {
 		return engine.getOrderBook(side)
@@ -219,8 +214,8 @@ func (engine *MatchEngine) MarshalSnapShort() []byte {
 		}
 	}
 
-	marshalFunc(engine.buyOrderBook, buyBook)
-	marshalFunc(engine.sellOrderBook, sellBook)
+	marshalFunc(engine.buyOrderBook.Map, buyBook)
+	marshalFunc(engine.sellOrderBook.Map, sellBook)
 
 	snapshot := dto.OrderBookSnapshot{
 		SequenceId: uint64(sequenceId),
