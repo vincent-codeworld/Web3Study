@@ -124,21 +124,17 @@ func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
 		side = dto.Side_SIDE_SELL
 	}
 	var result []*dto.OrderResult
-	ob := engine.getOrderBook(side)
+	obFunc := func(side dto.Side) *orderbook.OrderBook {
+		return engine.getOrderBook(side)
+	}
 	switch order.Type {
 	case dto.OrderType_ORDER_TYPE_MARKET:
 		{
-			r, err := handlers.MarketHandler(order, ob)
+			r, err := handlers.MarketHandler(order, obFunc)
 			if err != nil {
 				return nil, err
 			}
 			result = append(result, r...)
-			unfillAmt, _ := decimal.NewFromString(order.UnfilledAmount)
-			//taker撮合后还有余额，放到order book 成为maker
-			if unfillAmt.GreaterThan(decimal.Zero) {
-				tempOb := engine.getOrderBook(order.Side)
-				tempOb.Add(order)
-			}
 			return result, nil
 		}
 	case dto.OrderType_ORDER_TYPE_LIMIT:

@@ -8,7 +8,12 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func MarketHandler(taker *dto.Order, ob *orderbook.OrderBook) ([]*dto.OrderResult, error) {
+func MarketHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.OrderBook) ([]*dto.OrderResult, error) {
+	makerSide := dto.Side_SIDE_BUY
+	if taker.Side == dto.Side_SIDE_BUY {
+		makerSide = dto.Side_SIDE_SELL
+	}
+	ob := obFunc(makerSide)
 	iterator := ob.Iterator()
 	var result []*dto.OrderResult
 	for iterator.Next() {
@@ -19,56 +24,32 @@ func MarketHandler(taker *dto.Order, ob *orderbook.OrderBook) ([]*dto.OrderResul
 			if maker == nil {
 				break
 			}
-			if taker.UserId == maker.UserId {
-				selfTrade, err := selfTradeHandler(taker, maker)
-				if err != nil {
-					return nil, err
-				}
-				result = append(result, selfTrade...)
-				if taker.Stp == dto.SelfTradeWMType_STP_CO {
-					ob.Del(maker.Price)
-					continue
-				} else if taker.Stp == dto.SelfTradeWMType_STP_CN {
+			tempResult, isSelfTrade, b1, err := SelfTradeHandler(ob, taker, maker)
+			if err != nil {
+				return nil, err
+			}
+			if isSelfTrade {
+				result = append(result, tempResult...)
+				if !b1 {
 					return result, nil
-				} else if taker.Stp == dto.SelfTradeWMType_STP_CB {
-					ob.Del(maker.Price)
-					return result, nil
-				} else if taker.Stp == dto.SelfTradeWMType_STP_DC {
-					isRemove := false
-					if maker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || maker.State == dto.OrderState_ORDER_STATE_CANCELED {
-						nt := maker.Next
-						if nt == nil {
-							ob.Remove(priceLevel.Price)
-							isRemove = true
-						} else {
-							nt.Pre = nil
-							priceLevel.Head = nt
-							maker = priceLevel.Head
-						}
-					}
-
-					if taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || taker.State == dto.OrderState_ORDER_STATE_CANCELED {
-						return result, nil
-					}
-
-					if isRemove {
-						break
-					}
-
-					continue
 				}
-
+				continue
 			}
 
 			//正常交易,返回true，taker结束撮合，返回false继续下个maker撮合
-			b, matchResult := match(ob, taker, maker)
+			b2, matchResult := match(ob, taker, maker)
 			result = append(result, matchResult...)
-			if b {
+			if b2 {
 				return result, nil
 			}
 		}
 	}
-
+	//taker 剩余的加入order book，成为maker
+	unfillAmt, _ := decimal.NewFromString(taker.UnfilledAmount)
+	if !(taker.State == dto.OrderState_ORDER_STATE_CANCELED || taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED) && unfillAmt.GreaterThan(decimal.Zero) {
+		tempOb := obFunc(taker.Side)
+		tempOb.Add(taker)
+	}
 	return result, nil
 }
 
