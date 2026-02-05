@@ -117,6 +117,9 @@ func (engine *MatchEngine) Start() {
 	}()
 }
 
+/*
+* 1. Post Only订单要求只做Maker，不能立即成交。只要能遇到成交的对手单，立即拒绝，该模式是为了成为maker，提供订单流动性
+ */
 func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
 	var result []*dto.OrderResult
 	obFunc := func(side dto.Side) *orderbook.OrderBook {
@@ -138,6 +141,10 @@ func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
 				return nil, err
 			}
 			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_POST_ONLY:
+		{
+
 		}
 	default:
 		return nil, fmt.Errorf("invalid order type: %s", order.Type)
