@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/emirpasic/gods/maps/treemap"
+	"github.com/shopspring/decimal"
 )
 
 type OrderBook struct {
@@ -25,21 +26,23 @@ func NewOrderBook(sort int) *OrderBook {
 
 func (ob *OrderBook) Add(order *dto.Order) {
 	price, _ := strconv.ParseFloat(order.Price, 64)
+	orderVol, _ := decimal.NewFromString(order.GetUnfilledAmount())
 	if priceLevel, found := ob.Get(price); !found {
-		d := new(dto.PriceLevel)
-		d.Price = price
-		d.Head = order
-		d.Tail = order
-		order.Parent = d
-		ob.Put(price, d)
+		pl := new(dto.PriceLevel)
+		pl.Price = price
+		pl.Head = order
+		pl.Tail = order
+		order.Parent = pl
+		ob.Put(price, pl)
+		pl.TotalVolume = orderVol.String()
 	} else {
 		pl := priceLevel.(*dto.PriceLevel)
 		tailOrder := pl.Tail
 		tailOrder.Next = order
 		order.Pre = tailOrder
 		pl.Tail = order
-		orderVol, _ := strconv.ParseFloat(order.GetUnfilledAmount(), 64)
-		pl.TotalVolume = pl.TotalVolume + orderVol
+		totalVolume, _ := decimal.NewFromString(pl.TotalVolume)
+		pl.TotalVolume = totalVolume.Add(orderVol).String()
 	}
 }
 
@@ -50,7 +53,9 @@ func (ob *OrderBook) Del(price string) {
 	}
 	pl := value.(*dto.PriceLevel)
 	o := pl.Head
-
+	totalVolume, _ := decimal.NewFromString(pl.TotalVolume)
+	orderVolume, _ := decimal.NewFromString(o.UnfilledAmount)
+	pl.TotalVolume = totalVolume.Sub(orderVolume).String()
 	next := o.Next
 	if next == nil {
 		ob.Remove(price)

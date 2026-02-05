@@ -128,7 +128,7 @@ message PriceLevel {
   double price = 1;
 
   // 该价格档总挂单量
-  double total_volume = 2;
+  string total_volume = 2;
 
   // 该价格档下的订单列表
   Order head = 3;

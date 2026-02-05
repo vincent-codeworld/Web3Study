@@ -144,6 +144,14 @@ func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
 		}
 	case dto.OrderType_ORDER_TYPE_POST_ONLY:
 		{
+			r, err := handlers.PostOnlyHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_FOK:
+		{
 
 		}
 	default:
