@@ -21,33 +21,27 @@ func FillOrKillHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.O
 	}
 	ob := obFunc(makerSide)
 	var result []*dto.OrderResult
-	iterator := ob.Iterator()
-	takerPrice, _ := strconv.ParseFloat(taker.Price, 64)
-	for iterator.Next() {
-		pl := iterator.Value().(*dto.PriceLevel)
-		subPrice := takerPrice - pl.Price
-		//先判断是否存在maker符合交易条件，不符合直接返回
-		if (taker.Side == dto.Side_SIDE_SELL && subPrice < 0) ||
-			(taker.Side == dto.Side_SIDE_BUY && subPrice > 0) {
-			return []*dto.OrderResult{
-				{
-					OrderId:      taker.OrderId,
-					UserId:       taker.UserId,
-					Price:        taker.Price,
-					CancelReason: constant.CancelReasonFillOrKill,
-				},
-			}, nil
-		}
-		// 通过selfTradeHandler 判断
-
-		// 统计成交金额，能满足订单全部金额则成交，否则撤销订单
+	if !PreCalDepth(ob, taker) {
+		return []*dto.OrderResult{
+			{
+				OrderId:      taker.OrderId,
+				UserId:       taker.UserId,
+				Role:         constant.RoleTaker,
+				Stp:          taker.Stp,
+				CancelReason: constant.CancelReasonFillOrKill,
+			},
+		}, nil
 	}
+
+	// 真正执行
+
 	return result, nil
 }
 
 func PreCalDepth(ob *orderbook.OrderBook, taker *dto.Order) bool {
 	iterator := ob.Iterator()
 	takerPrice, _ := strconv.ParseFloat(taker.Price, 64)
+	takerAmt, _ := decimal.NewFromString(taker.UnfilledAmount)
 	totalVolume := decimal.Zero
 	for iterator.Next() {
 		pl := iterator.Value().(*dto.PriceLevel)
@@ -57,43 +51,58 @@ func PreCalDepth(ob *orderbook.OrderBook, taker *dto.Order) bool {
 			(taker.Side == dto.Side_SIDE_BUY && subPrice > 0) {
 			return false
 		}
-		// 通过selfTradeHandler 判断
-
+		maker := pl.Head
+		for {
+			if maker == nil {
+				break
+			}
+			// 通过selfTradeHandler 判断
+			isPass, preFillAmt := fokSelfTradeCheck(taker, maker)
+			if !isPass {
+				return false
+			}
+			totalVolume = totalVolume.Add(preFillAmt)
+			if totalVolume.GreaterThanOrEqual(takerAmt) {
+				return true
+			}
+			maker = maker.Next
+		}
 		// 统计成交金额，能满足订单全部金额则成交，否则撤销订单
+		if totalVolume.GreaterThanOrEqual(takerAmt) {
+			return true
+		}
 	}
 	return false
 }
 
-func fokSelfTrade(taker, maker *dto.Order) (bool, decimal.Decimal) {
+func fokSelfTradeCheck(taker, maker *dto.Order) (bool, decimal.Decimal) {
 	switch taker.Stp {
-	// 正常的撮合逻辑
 	case dto.SelfTradeWMType_STP_AST:
-		return true, decimal.Decimal{}
-	//DC类型是不产生标准成交记录
-	case dto.SelfTradeWMType_STP_DC:
 		takerAmt, _ := decimal.NewFromString(taker.GetUnfilledAmount())
 		makerAmt, _ := decimal.NewFromString(maker.GetUnfilledAmount())
-		if takerAmt.GreaterThan(makerAmt) {
-			takerAmt = takerAmt.Sub(makerAmt)
-			taker.UnfilledAmount = takerAmt.String()
-
-			return true, decimal.Decimal{}
-		} else if takerAmt.Equal(makerAmt) {
-			return true, decimal.Decimal{}
-		}
-		makerAmt = makerAmt.Sub(takerAmt)
-		maker.UnfilledAmount = makerAmt.String()
-		return true, decimal.Decimal{}
-	case dto.SelfTradeWMType_STP_CO:
-
-		return true, decimal.Decimal{}
-	case dto.SelfTradeWMType_STP_CN:
-
-		return false, decimal.Decimal{}
-	case dto.SelfTradeWMType_STP_CB:
-
-		return false, decimal.Decimal{}
+		fillAmt := decimal.Min(takerAmt, makerAmt)
+		return true, fillAmt
+	case dto.SelfTradeWMType_STP_DC, dto.SelfTradeWMType_STP_CO:
+		return true, decimal.Zero
+	case dto.SelfTradeWMType_STP_CN, dto.SelfTradeWMType_STP_CB:
+		return false, decimal.Zero
 	default:
-		return false, decimal.Decimal{}
+		return false, decimal.Zero
+	}
+}
+
+func fokSelfTradeHandler(ob *orderbook.OrderBook, taker, maker *dto.Order) ([]*dto.OrderResult, decimal.Decimal) {
+	switch taker.Stp {
+	case dto.SelfTradeWMType_STP_AST:
+		takerAmt, _ := decimal.NewFromString(taker.GetUnfilledAmount())
+		makerAmt, _ := decimal.NewFromString(maker.GetUnfilledAmount())
+		fillAmt := decimal.Min(takerAmt, makerAmt)
+		return nil, fillAmt
+	case dto.SelfTradeWMType_STP_DC, dto.SelfTradeWMType_STP_CO:
+		return nil, decimal.Zero
+	case dto.SelfTradeWMType_STP_CN, dto.SelfTradeWMType_STP_CB:
+		return nil, decimal.Zero
+	default:
+		return nil, decimal.Zero
 	}
 }
