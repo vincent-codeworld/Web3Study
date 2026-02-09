@@ -15,13 +15,13 @@ import (
 	RingBuffer 是单生产者多消费者无锁模式
 */
 type RingBuffer struct {
-	data      []any
-	_padding1 [64]byte //解决伪共享带来的cpu cacheline 消耗
-	head      uint64
-	_padding2 [64]byte
-	tail      uint64
-	mask      uint64
-	size      uint64
+	head uint64
+	_    [56]byte
+	tail uint64
+	_    [56]byte
+	data []any
+	mask uint64
+	size uint64
 }
 
 func NewRingBuffer(size uint64) *RingBuffer {
