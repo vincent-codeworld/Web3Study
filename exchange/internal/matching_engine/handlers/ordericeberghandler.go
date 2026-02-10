@@ -1,1 +1,58 @@
 package handlers
+
+import (
+	"Web3Study/exchange/internal/dto"
+	"Web3Study/exchange/internal/matching_engine/orderbook"
+
+	"github.com/shopspring/decimal"
+)
+
+func IceBergHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.OrderBook) ([]*dto.OrderResult, error) {
+	makerSide := dto.Side_SIDE_BUY
+	if taker.Side == dto.Side_SIDE_BUY {
+		makerSide = dto.Side_SIDE_SELL
+	}
+	ob := obFunc(makerSide)
+	takerPrice, _ := decimal.NewFromString(taker.Price)
+	iterator := ob.Iterator()
+	var result []*dto.OrderResult
+	for iterator.Next() {
+		pl := iterator.Value()
+		priceLevel := pl.(*dto.PriceLevel)
+
+		makerPrice := decimal.NewFromFloat(priceLevel.Price)
+		subPrice := makerPrice.Sub(takerPrice)
+		if (taker.Side == dto.Side_SIDE_SELL && subPrice.IsNegative()) ||
+			(taker.Side == dto.Side_SIDE_BUY && subPrice.IsPositive()) {
+			break
+		}
+
+		for {
+			maker := priceLevel.Head
+			if maker == nil {
+				break
+			}
+			tempResult, isSelfTrade, b1, err := SelfTradeHandler(ob, taker, maker)
+			if err != nil {
+				return nil, err
+			}
+			if isSelfTrade {
+				result = append(result, tempResult...)
+				if !b1 {
+					return result, nil
+				}
+				continue
+			}
+
+			//正常交易,返回true，taker结束撮合，返回false继续下个maker撮合
+			isComplete, matchResult := match(ob, taker, maker)
+			result = append(result, matchResult...)
+			// ice berg订单如果在可见数量被消耗完，需要随机抽取隐藏数量到可见数量里，no matter taker or maker
+			if isComplete {
+				return result, nil
+			}
+		}
+
+	}
+	return result, nil
+}

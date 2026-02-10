@@ -48,7 +48,7 @@ func FillOrKillHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.O
 func PreCalDepth(ob *orderbook.OrderBook, taker *dto.Order) bool {
 	iterator := ob.Iterator()
 	takerPrice, _ := strconv.ParseFloat(taker.Price, 64)
-	totalVolume := decimal.Zero
+	//totalVolume := decimal.Zero
 	for iterator.Next() {
 		pl := iterator.Value().(*dto.PriceLevel)
 		subPrice := takerPrice - pl.Price

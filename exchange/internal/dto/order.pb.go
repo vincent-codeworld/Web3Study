@@ -279,14 +279,23 @@ type Order struct {
 	Stp            SelfTradeWMType `protobuf:"varint,11,opt,name=stp,proto3,enum=dto.SelfTradeWMType" json:"stp,omitempty"`
 	PullTime       int64           `protobuf:"varint,12,opt,name=pull_time,json=pullTime,proto3" json:"pull_time,omitempty"`
 	// 批量撤单的订单ID集合
-	Extra         string      `protobuf:"bytes,13,opt,name=extra,proto3" json:"extra,omitempty"`
-	Taker         string      `protobuf:"bytes,14,opt,name=taker,proto3" json:"taker,omitempty"`
-	Maker         string      `protobuf:"bytes,15,opt,name=maker,proto3" json:"maker,omitempty"`
-	Pre           *Order      `protobuf:"bytes,16,opt,name=pre,proto3" json:"pre,omitempty"`
-	Next          *Order      `protobuf:"bytes,17,opt,name=next,proto3" json:"next,omitempty"`
-	Parent        *PriceLevel `protobuf:"bytes,18,opt,name=Parent,proto3" json:"Parent,omitempty"` // 反向指针：指向它所属的“价格层级”对象
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Extra  string      `protobuf:"bytes,13,opt,name=extra,proto3" json:"extra,omitempty"`
+	Taker  string      `protobuf:"bytes,14,opt,name=taker,proto3" json:"taker,omitempty"`
+	Maker  string      `protobuf:"bytes,15,opt,name=maker,proto3" json:"maker,omitempty"`
+	Pre    *Order      `protobuf:"bytes,16,opt,name=pre,proto3" json:"pre,omitempty"`
+	Next   *Order      `protobuf:"bytes,17,opt,name=next,proto3" json:"next,omitempty"`
+	Parent *PriceLevel `protobuf:"bytes,18,opt,name=Parent,proto3" json:"Parent,omitempty"` // 反向指针：指向它所属的“价格层级”对象
+	// 冰山订单专用字段
+	TotalQuantity   string `protobuf:"bytes,19,opt,name=total_quantity,json=totalQuantity,proto3" json:"total_quantity,omitempty"`       // 冰山订单总数量
+	VisibleQuantity string `protobuf:"bytes,20,opt,name=visible_quantity,json=visibleQuantity,proto3" json:"visible_quantity,omitempty"` // 当前可见数量（参与撮合）
+	HiddenQuantity  string `protobuf:"bytes,21,opt,name=hidden_quantity,json=hiddenQuantity,proto3" json:"hidden_quantity,omitempty"`    // 隐藏数量
+	DisplayQuantity string `protobuf:"bytes,22,opt,name=display_quantity,json=displayQuantity,proto3" json:"display_quantity,omitempty"` // 每次露出的数量
+	DisplayMin      string `protobuf:"bytes,23,opt,name=display_min,json=displayMin,proto3" json:"display_min,omitempty"`                // 随机显示量最小值（可选）
+	DisplayMax      string `protobuf:"bytes,24,opt,name=display_max,json=displayMax,proto3" json:"display_max,omitempty"`                // 随机显示量最大值（可选）
+	RefreshCount    string `protobuf:"bytes,25,opt,name=refresh_count,json=refreshCount,proto3" json:"refresh_count,omitempty"`          // 已刷新次数，用于统计和调试
+	OrderTime       uint64 `protobuf:"varint,99,opt,name=order_time,json=orderTime,proto3" json:"order_time,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Order) Reset() {
@@ -445,6 +454,62 @@ func (x *Order) GetParent() *PriceLevel {
 	return nil
 }
 
+func (x *Order) GetTotalQuantity() string {
+	if x != nil {
+		return x.TotalQuantity
+	}
+	return ""
+}
+
+func (x *Order) GetVisibleQuantity() string {
+	if x != nil {
+		return x.VisibleQuantity
+	}
+	return ""
+}
+
+func (x *Order) GetHiddenQuantity() string {
+	if x != nil {
+		return x.HiddenQuantity
+	}
+	return ""
+}
+
+func (x *Order) GetDisplayQuantity() string {
+	if x != nil {
+		return x.DisplayQuantity
+	}
+	return ""
+}
+
+func (x *Order) GetDisplayMin() string {
+	if x != nil {
+		return x.DisplayMin
+	}
+	return ""
+}
+
+func (x *Order) GetDisplayMax() string {
+	if x != nil {
+		return x.DisplayMax
+	}
+	return ""
+}
+
+func (x *Order) GetRefreshCount() string {
+	if x != nil {
+		return x.RefreshCount
+	}
+	return ""
+}
+
+func (x *Order) GetOrderTime() uint64 {
+	if x != nil {
+		return x.OrderTime
+	}
+	return 0
+}
+
 type OrderBookSnapshot struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CoinGroup     uint32                 `protobuf:"varint,1,opt,name=coin_group,json=coinGroup,proto3" json:"coin_group,omitempty"`    // 交易对，如 BTC-USDT
@@ -537,6 +602,7 @@ type OrderResult struct {
 	Stp                 SelfTradeWMType `protobuf:"varint,10,opt,name=stp,proto3,enum=dto.SelfTradeWMType" json:"stp,omitempty"`
 	StpDeductedQuantity string          `protobuf:"bytes,11,opt,name=stp_deducted_quantity,json=stpDeductedQuantity,proto3" json:"stp_deducted_quantity,omitempty"` //自成交减量抵消掉的数量
 	CancelReason        string          `protobuf:"bytes,12,opt,name=cancel_reason,json=cancelReason,proto3" json:"cancel_reason,omitempty"`                        //订单取消原因
+	TimeStamp           uint64          `protobuf:"varint,13,opt,name=time_stamp,json=timeStamp,proto3" json:"time_stamp,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -655,6 +721,13 @@ func (x *OrderResult) GetCancelReason() string {
 	return ""
 }
 
+func (x *OrderResult) GetTimeStamp() uint64 {
+	if x != nil {
+		return x.TimeStamp
+	}
+	return 0
+}
+
 type PriceLevel struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 价格
@@ -730,7 +803,7 @@ var File_order_proto protoreflect.FileDescriptor
 
 const file_order_proto_rawDesc = "" +
 	"\n" +
-	"\vorder.proto\x12\x03dto\"\xa9\x04\n" +
+	"\vorder.proto\x12\x03dto\"\xd5\x06\n" +
 	"\x05Order\x12\x15\n" +
 	"\x06seq_id\x18\x01 \x01(\x03R\x05seqId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x19\n" +
@@ -752,7 +825,18 @@ const file_order_proto_rawDesc = "" +
 	".dto.OrderR\x03pre\x12\x1e\n" +
 	"\x04next\x18\x11 \x01(\v2\n" +
 	".dto.OrderR\x04next\x12'\n" +
-	"\x06Parent\x18\x12 \x01(\v2\x0f.dto.PriceLevelR\x06Parent\"\x93\x01\n" +
+	"\x06Parent\x18\x12 \x01(\v2\x0f.dto.PriceLevelR\x06Parent\x12%\n" +
+	"\x0etotal_quantity\x18\x13 \x01(\tR\rtotalQuantity\x12)\n" +
+	"\x10visible_quantity\x18\x14 \x01(\tR\x0fvisibleQuantity\x12'\n" +
+	"\x0fhidden_quantity\x18\x15 \x01(\tR\x0ehiddenQuantity\x12)\n" +
+	"\x10display_quantity\x18\x16 \x01(\tR\x0fdisplayQuantity\x12\x1f\n" +
+	"\vdisplay_min\x18\x17 \x01(\tR\n" +
+	"displayMin\x12\x1f\n" +
+	"\vdisplay_max\x18\x18 \x01(\tR\n" +
+	"displayMax\x12#\n" +
+	"\rrefresh_count\x18\x19 \x01(\tR\frefreshCount\x12\x1d\n" +
+	"\n" +
+	"order_time\x18c \x01(\x04R\torderTime\"\x93\x01\n" +
 	"\x11OrderBookSnapshot\x12\x1d\n" +
 	"\n" +
 	"coin_group\x18\x01 \x01(\rR\tcoinGroup\x12\x1f\n" +
@@ -761,7 +845,7 @@ const file_order_proto_rawDesc = "" +
 	"\x04asks\x18\x03 \x03(\v2\n" +
 	".dto.OrderR\x04asks\x12\x1e\n" +
 	"\x04bids\x18\x04 \x03(\v2\n" +
-	".dto.OrderR\x04bids\"\xfc\x02\n" +
+	".dto.OrderR\x04bids\"\x9b\x03\n" +
 	"\vOrderResult\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\x03R\aorderId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x12\n" +
@@ -775,7 +859,9 @@ const file_order_proto_rawDesc = "" +
 	"\x03stp\x18\n" +
 	" \x01(\x0e2\x14.dto.SelfTradeWMTypeR\x03stp\x122\n" +
 	"\x15stp_deducted_quantity\x18\v \x01(\tR\x13stpDeductedQuantity\x12#\n" +
-	"\rcancel_reason\x18\f \x01(\tR\fcancelReason\"\x85\x01\n" +
+	"\rcancel_reason\x18\f \x01(\tR\fcancelReason\x12\x1d\n" +
+	"\n" +
+	"time_stamp\x18\r \x01(\x04R\ttimeStamp\"\x85\x01\n" +
 	"\n" +
 	"PriceLevel\x12\x14\n" +
 	"\x05price\x18\x01 \x01(\x01R\x05price\x12!\n" +

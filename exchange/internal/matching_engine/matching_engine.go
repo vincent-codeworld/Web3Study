@@ -174,7 +174,27 @@ func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
 		}
 	case dto.OrderType_ORDER_TYPE_FOK:
 		{
-
+			r, err := handlers.FillOrKillHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_IOC:
+		{
+			r, err := handlers.IocHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_ICEBERG:
+		{
+			r, err := handlers.IceBergHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
 		}
 	default:
 		return nil, fmt.Errorf("invalid order type: %s", order.Type)

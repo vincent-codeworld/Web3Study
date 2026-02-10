@@ -12,4 +12,5 @@ const (
 	CancelReasonCancelBoth = "Self Trade Prevention Cancel Both"
 	CancelReasonPostOnly   = "Order Post Only"
 	CancelReasonFillOrKill = "Order Fill Or Kill"
+	CancelReasonIOC        = "Immediate or Cancel"
 )

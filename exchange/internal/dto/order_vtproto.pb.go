@@ -50,6 +50,76 @@ func (m *Order) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.OrderTime != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.OrderTime))
+		i--
+		dAtA[i] = 0x6
+		i--
+		dAtA[i] = 0x98
+	}
+	if len(m.RefreshCount) > 0 {
+		i -= len(m.RefreshCount)
+		copy(dAtA[i:], m.RefreshCount)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.RefreshCount)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xca
+	}
+	if len(m.DisplayMax) > 0 {
+		i -= len(m.DisplayMax)
+		copy(dAtA[i:], m.DisplayMax)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.DisplayMax)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xc2
+	}
+	if len(m.DisplayMin) > 0 {
+		i -= len(m.DisplayMin)
+		copy(dAtA[i:], m.DisplayMin)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.DisplayMin)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xba
+	}
+	if len(m.DisplayQuantity) > 0 {
+		i -= len(m.DisplayQuantity)
+		copy(dAtA[i:], m.DisplayQuantity)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.DisplayQuantity)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xb2
+	}
+	if len(m.HiddenQuantity) > 0 {
+		i -= len(m.HiddenQuantity)
+		copy(dAtA[i:], m.HiddenQuantity)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.HiddenQuantity)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xaa
+	}
+	if len(m.VisibleQuantity) > 0 {
+		i -= len(m.VisibleQuantity)
+		copy(dAtA[i:], m.VisibleQuantity)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.VisibleQuantity)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0xa2
+	}
+	if len(m.TotalQuantity) > 0 {
+		i -= len(m.TotalQuantity)
+		copy(dAtA[i:], m.TotalQuantity)
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(len(m.TotalQuantity)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x9a
+	}
 	if m.Parent != nil {
 		size, err := m.Parent.MarshalToSizedBufferVT(dAtA[:i])
 		if err != nil {
@@ -273,6 +343,11 @@ func (m *OrderResult) MarshalToSizedBufferVT(dAtA []byte) (int, error) {
 		i -= len(m.unknownFields)
 		copy(dAtA[i:], m.unknownFields)
 	}
+	if m.TimeStamp != 0 {
+		i = protohelpers.EncodeVarint(dAtA, i, uint64(m.TimeStamp))
+		i--
+		dAtA[i] = 0x68
+	}
 	if len(m.CancelReason) > 0 {
 		i -= len(m.CancelReason)
 		copy(dAtA[i:], m.CancelReason)
@@ -489,6 +564,37 @@ func (m *Order) SizeVT() (n int) {
 		l = m.Parent.SizeVT()
 		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
 	}
+	l = len(m.TotalQuantity)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.VisibleQuantity)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.HiddenQuantity)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.DisplayQuantity)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.DisplayMin)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.DisplayMax)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	l = len(m.RefreshCount)
+	if l > 0 {
+		n += 2 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.OrderTime != 0 {
+		n += 2 + protohelpers.SizeOfVarint(uint64(m.OrderTime))
+	}
 	n += len(m.unknownFields)
 	return n
 }
@@ -571,6 +677,9 @@ func (m *OrderResult) SizeVT() (n int) {
 	l = len(m.CancelReason)
 	if l > 0 {
 		n += 1 + l + protohelpers.SizeOfVarint(uint64(l))
+	}
+	if m.TimeStamp != 0 {
+		n += 1 + protohelpers.SizeOfVarint(uint64(m.TimeStamp))
 	}
 	n += len(m.unknownFields)
 	return n
@@ -1101,6 +1210,249 @@ func (m *Order) UnmarshalVT(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 19:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalQuantity", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TotalQuantity = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 20:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VisibleQuantity", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VisibleQuantity = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 21:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HiddenQuantity", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HiddenQuantity = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 22:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DisplayQuantity", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DisplayQuantity = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 23:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DisplayMin", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DisplayMin = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 24:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DisplayMax", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DisplayMax = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 25:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RefreshCount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return protohelpers.ErrInvalidLength
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RefreshCount = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 99:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrderTime", wireType)
+			}
+			m.OrderTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OrderTime |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])
@@ -1654,6 +2006,25 @@ func (m *OrderResult) UnmarshalVT(dAtA []byte) error {
 			}
 			m.CancelReason = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 13:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
+			}
+			m.TimeStamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protohelpers.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TimeStamp |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := protohelpers.Skip(dAtA[iNdEx:])

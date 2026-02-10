@@ -153,6 +153,9 @@ func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, err
 func SelfTradeHandler(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, bool, bool, error) {
 	var result []*dto.OrderResult
 	if taker.UserId == maker.UserId && taker.Stp != dto.SelfTradeWMType_STP_AST {
+		if taker.Type == dto.OrderType_ORDER_TYPE_ICEBERG && taker.Stp == dto.SelfTradeWMType_STP_DC {
+			return nil, false, false, nil
+		}
 		b := true
 		selfTrade, err := selfTradeMatch(taker, maker)
 		if err != nil {

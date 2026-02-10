@@ -80,6 +80,16 @@ message Order {
   Order pre = 16;
   Order next = 17;
   PriceLevel  Parent = 18;// 反向指针：指向它所属的“价格层级”对象
+  // 冰山订单专用字段
+  string total_quantity  =19;  // 冰山订单总数量
+  string visible_quantity=20;  // 当前可见数量（参与撮合）
+  string hidden_quantity =21;  // 隐藏数量
+  string display_quantity=22; // 每次露出的数量
+  string display_min     =23 ; // 随机显示量最小值（可选）
+  string display_max     =24;  // 随机显示量最大值（可选）
+  string refresh_count   =25;  // 已刷新次数，用于统计和调试
+
+  uint64 order_time=99;
 }
 
 message OrderBookSnapshot {
@@ -121,6 +131,7 @@ message OrderResult {
   SelfTradeWMType stp = 10;
   string  stp_deducted_quantity = 11; //自成交减量抵消掉的数量
   string cancel_reason = 12;//订单取消原因
+  uint64 time_stamp=13;
 }
 
 message PriceLevel {
