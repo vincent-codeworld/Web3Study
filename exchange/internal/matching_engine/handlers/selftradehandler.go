@@ -33,9 +33,6 @@ func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, err
 		return nil, nil
 	//DC类型是不产生标准成交记录
 	case dto.SelfTradeWMType_STP_DC:
-		if taker.Type == dto.OrderType_ORDER_TYPE_FOK {
-			return nil, nil
-		}
 		takerAmt, _ := decimal.NewFromString(taker.GetUnfilledAmount())
 		makerAmt, _ := decimal.NewFromString(maker.GetUnfilledAmount())
 		if takerAmt.GreaterThan(makerAmt) {
