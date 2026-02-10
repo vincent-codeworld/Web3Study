@@ -51,9 +51,3 @@ func MarketHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.Order
 	}
 	return result, nil
 }
-
-/*
-*
-
-	market撮合马上成交
-*/
