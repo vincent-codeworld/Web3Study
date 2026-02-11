@@ -18,7 +18,7 @@ import (
 			CN:cancel new，取消新订单
 			CB:cancel both，maker跟taker都取消
 */
-func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, error) {
+func selfTradeMatch(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, error) {
 	cancelOrder := func(o *dto.Order) {
 		if o.State == dto.OrderState_ORDER_STATE_PARTIAL_FILLED {
 			o.State = dto.OrderState_ORDER_STATE_PARTIAL_CANCELED
@@ -58,6 +58,7 @@ func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, err
 			}, nil
 		} else if takerAmt.Equal(makerAmt) {
 			cancelOrder(maker)
+			ob.ModifyMaker(maker)
 			cancelOrder(taker)
 			return []*dto.OrderResult{
 				{
@@ -80,6 +81,7 @@ func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, err
 		}
 		makerAmt = makerAmt.Sub(takerAmt)
 		maker.UnfilledAmount = makerAmt.String()
+		ob.ModifyMaker(maker)
 		cancelOrder(taker)
 		return []*dto.OrderResult{
 			{
@@ -124,6 +126,7 @@ func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, err
 		}, nil
 	case dto.SelfTradeWMType_STP_CB:
 		cancelOrder(maker)
+		ob.ModifyMaker(maker)
 		cancelOrder(taker)
 
 		return []*dto.OrderResult{
@@ -147,7 +150,6 @@ func selfTradeMatch(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, err
 	default:
 		return nil, fmt.Errorf("unsupported Trade Type %d", taker.Stp)
 	}
-
 }
 
 func SelfTradeHandler(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, bool, bool, error) {
@@ -157,7 +159,7 @@ func SelfTradeHandler(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Orde
 			return nil, false, false, nil
 		}
 		b := true
-		selfTrade, err := selfTradeMatch(taker, maker)
+		selfTrade, err := selfTradeMatch(ob, taker, maker)
 		if err != nil {
 			return nil, true, false, err
 		}

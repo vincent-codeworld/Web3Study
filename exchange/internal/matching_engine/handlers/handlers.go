@@ -52,6 +52,7 @@ func match(ob *orderbook.OrderBook, taker, maker *dto.Order) (bool, []*dto.Order
 	pl.TotalVolume = totalVol.Sub(fillAmt).String()
 
 	maker.UnfilledAmount = leftMuf.String()
+	ob.ModifyMaker(maker)
 	taker.UnfilledAmount = leftTuf.String()
 	//如果maker 是ice berg订单，可见数量用完，需要随机抽取部分隐藏数量填充到可见数量，然后重新将maker放到队列最后
 	if leftMuf.LessThanOrEqual(decimal.Zero) {
@@ -60,7 +61,7 @@ func match(ob *orderbook.OrderBook, taker, maker *dto.Order) (bool, []*dto.Order
 	//taker 订单
 	// 如果是taker是ice berg订单，可见数量用完，需要随机抽取部分隐藏数量填充到可见数量，然后继续撮合直到结束
 	if leftTuf.LessThanOrEqual(decimal.Zero) {
-		return orderHandle(ob, maker, constant.RoleTaker), results
+		return orderHandle(ob, taker, constant.RoleTaker), results
 	}
 	return false, results
 }
@@ -108,6 +109,8 @@ func orderHandle(ob *orderbook.OrderBook, order *dto.Order, orderRole string) bo
 			}
 			totalVol, _ := decimal.NewFromString(pl.TotalVolume)
 			pl.TotalVolume = totalVol.Add(s).String()
+
+			ob.ModifyMakerWithPriority(order, dto.Priority_Low)
 		} else {
 			ob.Del(order.Price)
 		}

@@ -1,10 +1,7 @@
 syntax = "proto3";
 
 package dto;
-
-// 指定生成的 Go 包路径，建议根据你的项目结构修改
-// 例如: github.com/your_user/your_project/pb
-option go_package = "./exchange/internal/dto";
+option go_package = "internal/dto;dto";
 
 // ==========================================
 // 枚举定义
@@ -55,7 +52,7 @@ enum OrderState {
 
 message Order {
   int64 seq_id = 1;
-  int64 user_id = 2;
+  string user_id = 2;
   int64 order_id = 3;
 
   Side side = 4;
@@ -106,7 +103,7 @@ message OrderResult {
   int64 order_id = 1;
 
   // 用户ID
-  int64 user_id = 2;
+  string user_id = 2;
 
   // 角色 (taker/maker)
   string role = 3;

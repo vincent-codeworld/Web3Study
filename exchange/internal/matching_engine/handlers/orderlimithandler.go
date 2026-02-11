@@ -61,6 +61,7 @@ func LimitHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.OrderB
 	unfillAmt, _ := decimal.NewFromString(taker.UnfilledAmount)
 	if !(taker.State == dto.OrderState_ORDER_STATE_CANCELED || taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED) && unfillAmt.GreaterThan(decimal.Zero) {
 		tempOb := obFunc(taker.Side)
+
 		tempOb.Add(taker)
 	}
 	return result, nil
