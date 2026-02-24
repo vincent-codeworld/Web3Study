@@ -33,16 +33,10 @@ func NewRingBuffer[T any](size uint64) *RingBuffer[T] {
 }
 
 func (rb *RingBuffer[T]) Put(d T) {
-	retry := 0
 	for {
 		head := atomic.LoadUint64(&rb.head)
 		if rb.tail-head >= rb.size {
-			if retry < 10 {
-				runtime.Gosched()
-			} else {
-				time.Sleep(time.Millisecond * 50)
-			}
-			retry++
+			runtime.Gosched()
 			continue
 		}
 		break
@@ -53,17 +47,11 @@ func (rb *RingBuffer[T]) Put(d T) {
 }
 
 func (rb *RingBuffer[T]) Get() T {
-	retry := 0
 	for {
 		tail := atomic.LoadUint64(&rb.tail)
 		head := atomic.LoadUint64(&rb.head)
 		if head >= tail {
-			if retry < 5 {
-				runtime.Gosched()
-			} else {
-				time.Sleep(time.Millisecond * 100)
-			}
-			retry++
+			runtime.Gosched()
 			continue
 		}
 		d := rb.data[head&rb.mask]
