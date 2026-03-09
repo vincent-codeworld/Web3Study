@@ -3,6 +3,7 @@ package handlers
 import (
 	"Web3Study/exchange/internal/dto"
 	"Web3Study/exchange/internal/matching_engine/orderbook"
+	"sync"
 
 	"github.com/shopspring/decimal"
 )
@@ -21,6 +22,7 @@ func LimitHandler(taker *dto.Order, obFunc func(side dto.Side) *orderbook.OrderB
 	takerPrice, _ := decimal.NewFromString(taker.Price)
 	iterator := ob.Iterator()
 	var result []*dto.OrderResult
+	sync.Pool
 	for iterator.Next() {
 		pl := iterator.Value()
 		priceLevel := pl.(*dto.PriceLevel)
