@@ -14,35 +14,29 @@ import (
 
 	RingBuffer 是单生产者多消费者无锁模式
 */
-type RingBuffer struct {
-	data      []any
-	_padding1 [64]byte //解决伪共享带来的cpu cacheline 消耗
-	head      uint64
-	_padding2 [64]byte
-	tail      uint64
-	mask      uint64
-	size      uint64
+type RingBuffer[T any] struct {
+	head uint64
+	_    [56]byte
+	tail uint64
+	_    [56]byte
+	data []T
+	mask uint64
+	size uint64
 }
 
-func NewRingBuffer(size uint64) *RingBuffer {
-	return &RingBuffer{
-		data: make([]any, size),
+func NewRingBuffer[T any](size uint64) *RingBuffer[T] {
+	return &RingBuffer[T]{
+		data: make([]T, size),
 		size: size,
 		mask: size - 1,
 	}
 }
 
-func (rb *RingBuffer) Put(d any) {
-	retry := 0
+func (rb *RingBuffer[T]) Put(d T) {
 	for {
 		head := atomic.LoadUint64(&rb.head)
 		if rb.tail-head >= rb.size {
-			if retry < 5 {
-				runtime.Gosched()
-			} else {
-				time.Sleep(time.Millisecond * 100)
-			}
-			retry++
+			runtime.Gosched()
 			continue
 		}
 		break
@@ -52,18 +46,12 @@ func (rb *RingBuffer) Put(d any) {
 	atomic.StoreUint64(&rb.tail, rb.tail+1)
 }
 
-func (rb *RingBuffer) Get() any {
-	retry := 0
+func (rb *RingBuffer[T]) Get() T {
 	for {
 		tail := atomic.LoadUint64(&rb.tail)
 		head := atomic.LoadUint64(&rb.head)
 		if head >= tail {
-			if retry < 5 {
-				runtime.Gosched()
-			} else {
-				time.Sleep(time.Millisecond * 100)
-			}
-			retry++
+			runtime.Gosched()
 			continue
 		}
 		d := rb.data[head&rb.mask]
@@ -74,7 +62,7 @@ func (rb *RingBuffer) Get() any {
 }
 
 func main() {
-	rb := NewRingBuffer(1024)
+	rb := NewRingBuffer[int](1024)
 	producer := func() {
 		for i := 0; i < 10000; i++ {
 			rb.Put(i)

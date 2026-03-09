@@ -4,8 +4,11 @@ import (
 	"Web3Study/scanchains/internal/models"
 	"Web3Study/scanchains/internal/node"
 	"context"
+	"log"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"gorm.io/gorm"
@@ -56,6 +59,16 @@ func (p *ScanBlockProcessor) ProcessBlock(client *ethclient.Client, block *types
 		}
 
 	}*/
+
+	query := ethereum.FilterQuery{
+		FromBlock: big.NewInt(2394201),
+		ToBlock:   big.NewInt(2394201),
+		Addresses: []common.Address{
+			contractAddress,
+		},
+	}
+	p.node.Client.FilterLogs()
+
 	return nil
 }
 

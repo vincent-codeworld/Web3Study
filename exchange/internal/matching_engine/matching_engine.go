@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/maps/treemap"
-	"github.com/shopspring/decimal"
 )
 
 /**
@@ -71,6 +70,28 @@ Partially Cancelled 订单部分成交后被取消了剩余部分。
 
 Rejected 订单未能进入订单簿，在校验阶段就被拒绝。
 */
+
+/*
+*
+HIF高频交易：
+1、Golang层面，撮合引擎或者其他需要大量CPU计算的逻辑，对应的协程绑定在固定的线程，即对应的线程只有一个执行逻辑的协程。可以较少协程上下文切换
+2、高频访问的数据需要进行伪共享padding填充
+3、GC优化：
+
+	.减少堆内存分配
+	.使用压舱石技术，减少GC频率
+
+3.操作系统层面的优化：
+
+	使用线程亲和性，绑定交易所进程到指定cpu，减少线程上下文导致的cpu L1 L2 缓存失效
+
+WAL日志持久化方案
+1、OrderBook全量快照持久化
+.双份缓冲+ringbuffer 环形缓冲
+.持久化使用FlatBuffers序列化+bufio
+2、OrderBook增量快照持久化
+.持久化使用FlatBuffers序列化+bufio
+*/
 type MatchEngine struct {
 	ctx           context.Context
 	coinPairGroup uint8
@@ -118,38 +139,68 @@ func (engine *MatchEngine) Start() {
 	}()
 }
 
+/*
+* 1. Post Only订单要求只做Maker，不能立即成交。只要能遇到成交的对手单，立即拒绝，该模式是为了成为maker，提供订单流动性
+ */
 func (engine *MatchEngine) match(order *dto.Order) ([]*dto.OrderResult, error) {
-	side := dto.Side_SIDE_BUY
-	if order.Side == dto.Side_SIDE_BUY {
-		side = dto.Side_SIDE_SELL
-	}
 	var result []*dto.OrderResult
-	ob := engine.getOrderBook(side)
+	obFunc := func(side dto.Side) *orderbook.OrderBook {
+		return engine.getOrderBook(side)
+	}
 	switch order.Type {
 	case dto.OrderType_ORDER_TYPE_MARKET:
 		{
-			r, err := handlers.MarketHandler(order, ob)
+			r, err := handlers.MarketHandler(order, obFunc)
 			if err != nil {
 				return nil, err
 			}
 			result = append(result, r...)
-			unfillAmt, _ := decimal.NewFromString(order.UnfilledAmount)
-			//taker撮合后还有余额，放到order book 成为maker
-			if unfillAmt.GreaterThan(decimal.Zero) {
-				tempOb := engine.getOrderBook(order.Side)
-				tempOb.Add(order)
-			}
-			return result, nil
 		}
 	case dto.OrderType_ORDER_TYPE_LIMIT:
 		{
-
-			return nil, nil
+			r, err := handlers.LimitHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_POST_ONLY:
+		{
+			r, err := handlers.PostOnlyHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_FOK:
+		{
+			r, err := handlers.FillOrKillHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_IOC:
+		{
+			r, err := handlers.IocHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
+		}
+	case dto.OrderType_ORDER_TYPE_ICEBERG:
+		{
+			r, err := handlers.IceBergHandler(order, obFunc)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r...)
 		}
 	default:
 		return nil, fmt.Errorf("invalid order type: %s", order.Type)
 	}
 
+	return result, nil
 }
 
 func (engine *MatchEngine) Stop() {
@@ -223,8 +274,8 @@ func (engine *MatchEngine) MarshalSnapShort() []byte {
 		}
 	}
 
-	marshalFunc(engine.buyOrderBook, buyBook)
-	marshalFunc(engine.sellOrderBook, sellBook)
+	marshalFunc(engine.buyOrderBook.Map, buyBook)
+	marshalFunc(engine.sellOrderBook.Map, sellBook)
 
 	snapshot := dto.OrderBookSnapshot{
 		SequenceId: uint64(sequenceId),

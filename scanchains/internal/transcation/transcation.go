@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 func Test01() {
@@ -19,7 +20,6 @@ func Test01() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// 2. 加载私钥
 	// 注意：实际开发中不要把私钥硬编码在代码里，应该从环境变量或安全存储读取
 	privateKeyHex := "YOUR_PRIVATE_KEY_WITHOUT_0x"

@@ -18,7 +18,7 @@ import (
 			CN:cancel new，取消新订单
 			CB:cancel both，maker跟taker都取消
 */
-func selfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, error) {
+func selfTradeMatch(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, error) {
 	cancelOrder := func(o *dto.Order) {
 		if o.State == dto.OrderState_ORDER_STATE_PARTIAL_FILLED {
 			o.State = dto.OrderState_ORDER_STATE_PARTIAL_CANCELED
@@ -58,6 +58,7 @@ func selfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 			}, nil
 		} else if takerAmt.Equal(makerAmt) {
 			cancelOrder(maker)
+			ob.ModifyMaker(maker)
 			cancelOrder(taker)
 			return []*dto.OrderResult{
 				{
@@ -80,6 +81,7 @@ func selfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 		}
 		makerAmt = makerAmt.Sub(takerAmt)
 		maker.UnfilledAmount = makerAmt.String()
+		ob.ModifyMaker(maker)
 		cancelOrder(taker)
 		return []*dto.OrderResult{
 			{
@@ -124,6 +126,7 @@ func selfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 		}, nil
 	case dto.SelfTradeWMType_STP_CB:
 		cancelOrder(maker)
+		ob.ModifyMaker(maker)
 		cancelOrder(taker)
 
 		return []*dto.OrderResult{
@@ -147,48 +150,27 @@ func selfTradeHandler(taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, e
 	default:
 		return nil, fmt.Errorf("unsupported Trade Type %d", taker.Stp)
 	}
-
 }
 
-func SelfMatch(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, bool, error) {
+func SelfTradeHandler(ob *orderbook.OrderBook, taker *dto.Order, maker *dto.Order) ([]*dto.OrderResult, bool, bool, error) {
 	var result []*dto.OrderResult
-	if taker.UserId == maker.UserId {
-		selfTrade, err := selfTradeHandler(taker, maker)
+	if taker.UserId == maker.UserId && taker.Stp != dto.SelfTradeWMType_STP_AST {
+		if taker.Type == dto.OrderType_ORDER_TYPE_ICEBERG && taker.Stp == dto.SelfTradeWMType_STP_DC {
+			return nil, false, false, nil
+		}
+		b := true
+		selfTrade, err := selfTradeMatch(ob, taker, maker)
 		if err != nil {
-			return nil, false, err
+			return nil, true, false, err
 		}
 		result = append(result, selfTrade...)
-		if taker.Stp == dto.SelfTradeWMType_STP_CO {
+		if maker.State == dto.OrderState_ORDER_STATE_CANCELED || maker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED {
 			ob.Del(maker.Price)
-			return result, true, nil
-		} else if taker.Stp == dto.SelfTradeWMType_STP_CN {
-			return result, false, nil
-		} else if taker.Stp == dto.SelfTradeWMType_STP_CB {
-			ob.Del(maker.Price)
-			return result, false, nil
-		} else if taker.Stp == dto.SelfTradeWMType_STP_DC {
-			isRemove := false
-			if maker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || maker.State == dto.OrderState_ORDER_STATE_CANCELED {
-				nt := maker.Next
-				if nt == nil {
-					ob.Remove(priceLevel.Price)
-					isRemove = true
-				} else {
-					nt.Pre = nil
-					priceLevel.Head = nt
-					maker = priceLevel.Head
-				}
-			}
-
-			if taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED || taker.State == dto.OrderState_ORDER_STATE_CANCELED {
-				return result, nil
-			}
-			if isRemove {
-				break
-			}
-			continue
 		}
-
+		if taker.State == dto.OrderState_ORDER_STATE_CANCELED || taker.State == dto.OrderState_ORDER_STATE_PARTIAL_CANCELED {
+			b = false
+		}
+		return result, true, b, nil
 	}
-
+	return result, false, false, nil
 }
