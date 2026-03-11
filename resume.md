@@ -1,58 +1,3 @@
-1 **获取每个区块，获取区块中的每笔交易并判断是否数据业务需要的数据：**
-* 判断交易是不是普通ETH转账还是合约转账,如果是普通转账，要判断发送地址或者接受地址是不是我们自己管理的账号
-* 如果是合约，要看是合约转ETH还是普通调用合约方法，具体看看Value是否大于0，to的地址是不是自己管理的合约地址
-* 如果是普通调用合约方法，就要判断to对应合约地址属于哪一个地址
-* 获取交易的同时获取收据（使用eth_getBlockReceipts），交易的下标跟收据下标一样，需要通过收据来判断交易的状态，是否交易成功
-* 处理收据的同时需要解析事件 
-
-2 **使用websocket监听特定事件，实时性强但是容易受网络影响，另外数据的可靠性比较差，适合一些实时要求高的场景**
-
-3 **NFT监听的事件**
-.Transfer事件 (ERC-721):
- Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
- MetadataUpdate(uint256 _tokenId)：单体更新 [元数据更新事件 (EIP-4906)]
- BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId)：批量更新（如统一开盲盒）[元数据更新事件 (EIP-4906)]
- Approval(address owner, address approved, uint256 tokenId)：单体授权
- ApprovalForAll(address owner, address operator, bool approved)：全部授权（最常见，用户在 Opensea 挂单前都会触发这个）
-
-
-
-ETH transfer:
-     From(EOA)->(ETH)Contract,  Value>0
-     From(EOA)->Contract A (ETH)-> （EOA）或者 Contract B ,Value=0,需要监听日志
-
-
-
-
-
-3  **
-扫链：
-interview内容
-Resume ：
-1、NFT项目
-元数据服务 (Metadata API)
-链上数据同步与索引 (Indexing & Syncing)
-NFT撮合交易，线下操作
-2、AI客服（未上线）
-3.了解AMM
-rootdata挂靠项目
-CEX：
-interview内容
-rootdata挂靠项目
-golang tech statck：
-1、PG、redis、kafka、mysql
-2、golang 基础知识
-3、观测性
-区块链基础知识：
-1、ETH
-
-
-目前优先级：
-1、修改Resume
-2、复习
-
-
-
 NFT项目
 项目简介：
 Element 是一个多链 NFT 聚合交易平台，其核心业务由"聚合市场"与"自有订单簿市场"两部分构成。我于 2022 年底加入团队，主要负责"自有订单簿市场"的架构优化、性能重构与新功能迭代。该自有市场采用"链下签名订单簿 + 链上批量结算"的混合架构模式，作为 Element 聚合生态的重要组成部分，为专业交易者提供低成本、高效率的交易体验。
@@ -88,6 +33,15 @@ GET /api/v1/orders/{hash}  ← 取出卖家的完整签名订单
 → 前端用卖家签名 + 买家自己的参数，调用合约 fulfillOrder()
 → 链上原子交换完成
 → 后端监听链上事件 → MarkFilled(orderHash)
+
+
+**NFT监听的事件**
+.Transfer事件 (ERC-721):
+.Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
+.MetadataUpdate(uint256 _tokenId)：单体更新 [元数据更新事件 (EIP-4906)]
+.BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId)：批量更新（如统一开盲盒）[元数据更新事件 (EIP-4906)]
+.Approval(address owner, address approved, uint256 tokenId)：单体授权
+.ApprovalForAll(address owner, address operator, bool approved)：全部授权（最常见，用户在 Opensea 挂单前都会触发这个）
 
 查询：
 1、Nft级别：价格区间、支付代币、状态、Traits（属性）、稀有度排名、Token ID
