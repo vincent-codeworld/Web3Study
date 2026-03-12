@@ -24,6 +24,7 @@
    * 交易记录表(chain_id, tx_hash)
    * 交易回执表(chain_id, tx_hash)
    * 事件记录表(chain_id, tx_hash, log_index)
+
 5 **数据状态**
 
 区块状态（5-7种）              │  交易状态（6-8种）              │
@@ -55,3 +56,19 @@ for _, vLog := range logs {
       }
   }
 }
+
+7 **NFT订单流程**
+
+流程：
+卖家挂售：
+钱包签名 → POST /api/v1/orders (side=0) → 订单簿存储
+
+买家浏览：
+GET /api/v1/listings?nft_contract=0x...&token_id=6529
+→ 前端展示价格列表
+
+买家购买（Buy Now）：
+GET /api/v1/orders/{hash}  ← 取出卖家的完整签名订单
+→ 前端用卖家签名 + 买家自己的参数，调用合约fulfillOrder()
+→ 链上原子交换完成
+→ 后端监听链上事件 → MarkFilled(orderHash)
