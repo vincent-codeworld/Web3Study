@@ -1,100 +1,6 @@
-1 **获取每个区块，获取区块中的每笔交易并判断是否数据业务需要的数据：**
-* 判断交易是不是普通ETH转账还是合约转账,如果是普通转账，要判断发送地址或者接受地址是不是我们自己管理的账号
-* 如果是合约，要看是合约转ETH还是普通调用合约方法，具体看看Value是否大于0，to的地址是不是自己管理的合约地址
-* 如果是普通调用合约方法，就要判断to对应合约地址属于哪一个地址
-* 获取交易的同时获取收据（使用eth_getBlockReceipts），交易的下标跟收据下标一样，需要通过收据来判断交易的状态，是否交易成功
-* 处理收据的同时需要解析事件 
-
-2 **使用websocket监听特定事件，实时性强但是容易受网络影响，另外数据的可靠性比较差，适合一些实时要求高的场景**
-
-3 **NFT监听的事件**
-.Transfer事件 (ERC-721):
- Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
- MetadataUpdate(uint256 _tokenId)：单体更新 [元数据更新事件 (EIP-4906)]
- BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId)：批量更新（如统一开盲盒）[元数据更新事件 (EIP-4906)]
- Approval(address owner, address approved, uint256 tokenId)：单体授权
- ApprovalForAll(address owner, address operator, bool approved)：全部授权（最常见，用户在 Opensea 挂单前都会触发这个）
-
-
-
-ETH transfer:
-     From(EOA)->(ETH)Contract,  Value>0
-     From(EOA)->Contract A (ETH)-> （EOA）或者 Contract B ,Value=0,需要监听日志
-
-
-1、交易类型区分
-2、交易、事件的唯一标识
-普通转账：chain_id, tx_hash
-合约事件：chain_id, tx_hash, log_index
-回执：chain_id, tx_hash
-区块：chain_id, block_hash
-
-
-
-一个区块含有多笔交易，每笔交易都有一个回执，记录着：status、gasUsed、logsBloom、以及 logs（事件日志数组） 等。
-一个回执有多个事件日志
-
-
-事件中Topic：
-0:事件的签名
-1:第一个indexed参数
-2:第二个indexed参数
-3:第二个indexed参数
-
-最多三个indexed 参数，非 indexed 参数在 Data 中，匿名事件没有签名topic，最多可有4个索引参数
-可以通过indexed参数快速检索数据，类似数据库中的索引
-
-
-区块
-｜
-｜
-交易
-｜
-｜
-回执
-｜
-｜
-事件日志
-
-真实生产，获取哪些数据，怎么存
-
-
-
-
-
-
-3  **
-扫链：
-interview内容
-Resume ：
-1、NFT项目
-元数据服务 (Metadata API)
-链上数据同步与索引 (Indexing & Syncing)
-NFT撮合交易，线下操作
-2、AI客服（未上线）
-3.了解AMM
-rootdata挂靠项目
-CEX：
-interview内容
-rootdata挂靠项目
-golang tech statck：
-1、PG、redis、kafka、mysql
-2、golang 基础知识
-3、观测性
-区块链基础知识：
-1、ETH
-
-
-目前优先级：
-1、修改Resume
-2、复习
-
-
-
 NFT项目
 项目简介：
-Element是一个多链 NFT 聚合交易平台，其核心业务由"聚合市场"与"自有订单簿市场"两部分构成。我于 2022 年底加入团队，主要负责"自有订单簿市场"的架构优化、性能重构与新功能迭代。该自有市场采用"链下签名订单簿 + 链上批量结算"的混合架构模式，
-作为 Element 聚合生态的重要组成部分，为专业交易者提供低成本、高效率的交易体验。
+Element 是一个多链 NFT 聚合交易平台，其核心业务由"聚合市场"与"自有订单簿市场"两部分构成。我于 2022 年底加入团队，主要负责"自有订单簿市场"的架构优化、性能重构与新功能迭代。该自有市场采用"链下签名订单簿 + 链上批量结算"的混合架构模式，作为 Element 聚合生态的重要组成部分，为专业交易者提供低成本、高效率的交易体验。
 
 后端技术栈：Go、PostgreSQL、Mysql、Redis、MongoDB、Kubernetes、Docker
 
@@ -105,10 +11,10 @@ Element是一个多链 NFT 聚合交易平台，其核心业务由"聚合市场"
 .链上事件监听与数据同步：构建并持续优化了高可用的链上事件监听服务，设计并实现了针对链重组（Reorg）的自动回滚与数据修正机制，确保 关键事件毫秒级同步至后端数据库，保证了数据最终一致性。通过优化事件处理流程，数据与链上状态的延迟始终保持在 3 秒以内。
 .多链事件同步架构：设计了统一的多链事件监听框架，支持以太坊、Polygon、BNB Chain 等不同 EVM 链的并发监听，通过连接池管理和重试机制，确保了多链环境下的高可用性。
 
-项目技术难点及优化：
+项目技术优化：
 1、Goroutine泄露排查及解决
 2、使用池化技术减轻GC压力
-3、使用压舱石技术，减少GC频率
+3、多节点本地缓存一致性优化
 4、接口优化,将API响应时间从初期的500毫秒优化到150毫秒
 
 
@@ -127,6 +33,15 @@ GET /api/v1/orders/{hash}  ← 取出卖家的完整签名订单
 → 前端用卖家签名 + 买家自己的参数，调用合约 fulfillOrder()
 → 链上原子交换完成
 → 后端监听链上事件 → MarkFilled(orderHash)
+
+
+**NFT监听的事件**
+.Transfer事件 (ERC-721):
+.Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
+.MetadataUpdate(uint256 _tokenId)：单体更新 [元数据更新事件 (EIP-4906)]
+.BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId)：批量更新（如统一开盲盒）[元数据更新事件 (EIP-4906)]
+.Approval(address owner, address approved, uint256 tokenId)：单体授权
+.ApprovalForAll(address owner, address operator, bool approved)：全部授权（最常见，用户在 Opensea 挂单前都会触发这个）
 
 查询：
 1、Nft级别：价格区间、支付代币、状态、Traits（属性）、稀有度排名、Token ID
@@ -155,11 +70,7 @@ GET /api/v1/orders/{hash}  ← 取出卖家的完整签名订单
    采用 SSE (Server-Sent Events) 协议开发流式输出接口，实现 AI 回答的“打字机”效果，大幅降低了首字响应时间（TTFB），优化了前端用户的交互体验。
 
 
-
-
-
-
-
+   
 
 CEX交易所
 技术栈： Golang, gRPC, Kafka, Redis, MySQL, K8s，Docker
