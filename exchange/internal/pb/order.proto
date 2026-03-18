@@ -133,7 +133,7 @@ message OrderResult {
 
 message PriceLevel {
   // 价格
-  double price = 1;
+  string price = 1;
 
   // 该价格档总挂单量
   string total_volume = 2;
