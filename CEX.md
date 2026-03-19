@@ -27,7 +27,38 @@ ICEBERG（冰山订单）：
   3、增量缓冲区会根据当前数据量及定时器（如500ms），发送到kafka然后写到增量日志中
   4、全量快照协程是定时（如5min）将数据订单簿快照持久化
 
+使用local pv+Node Affinity（锁定节点）+异步：
+1.写入本地磁盘，K8s加上节点亲和，固定node节点，除非node 挂了。
+2.异步同步两种日志到s3：
+ i 增量数据，定时将增量数据同步到s3
+ ii 全量数据，定时将全量数据同步到s3
+
+增量的数据格式：
+Segment Header：
+   Magic (4B) │ Version(2B)│ SegmentID(8B)│ CreateTS(8B) │ FirstSeqNo(8B) │ CRC(4B)
+单条 Record 格式：
+│Length (4B)│SeqNo (8B)│TS (8B)   │Type (1B) │   Payload (变长)     │CRC32 (4B)
+
+整体格式：
+Segment Header          │
+├─────────────────────────────────┤
+│         Record 1                │
+├─────────────────────────────────┤
+│         Record 2                │
+├─────────────────────────────────┤
+│         Record 3                │
+├─────────────────────────────────┤
+│         ...                     │
+├─────────────────────────────────┤
+│    Zero Padding (预分配空间)
+
+上述使用FlatBuffers进行序列化
 
 5.ADL与RiskControl
+
+
+
+6.性能
+1、K8s在本地节点，cpu的亲和性+协程
  
 
